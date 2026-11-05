@@ -1,0 +1,8 @@
+{
+  "_note": "默认版本开关。boss_1819 = 第18-19轮主线（Title→Roster→Guide→Boss）；runner/culture 为第20-21轮新增，默认关闭但代码保留。hud_style 保留第16轮谱面带；guide_v2 保留第19轮指南重绘。",
+  "default_mode": "boss_1819",
+  "runner_enabled": false,
+  "culture_enabled": false,
+  "hud_style": "ribbon",
+  "guide_v2": true
+}

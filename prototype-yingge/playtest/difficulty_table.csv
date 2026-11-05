@@ -1,0 +1,7 @@
+hand,label,runs,win_rate,avg_time,perfect_rate,break_rate,phase1_survive,phase2_survive,makeup_ok,makeup_fail,combo_breaks_per_min
+perfect,完美,5,100.0,8.6,100.0,100.0,20.0,20.0,0,0,0.0
+skilled,熟练,5,100.0,9.6,98.1,100.0,60.0,40.0,0,0,0.0
+skilled_makeup,熟练+补打,5,100.0,9.6,98.1,100.0,60.0,40.0,0,0,0.0
+novice_before,新手·改前,5,0.0,35.8,0.0,0.0,0.0,0.0,0,0,5.7
+novice_guided,新手·改后,5,0.0,98.0,21.2,70.0,20.0,0.0,0,0,1.8
+novice_makeup,新手·改后+补打,5,0.0,100.0,24.4,73.5,40.0,0.0,8,4,2.4

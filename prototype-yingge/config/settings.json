@@ -1,0 +1,12 @@
+{
+  "leader": "likui",
+  "input_offset_ms": 120,
+  "guide_seen": true,
+  "bpm": 132,
+  "difficulty": "standard",
+  "auto_shots": true,
+  "visual_tilt": true,
+  "layer_variant_seed": 20261104,
+  "runner_display": "novice",
+  "_note": "bpm=快板 130-140；difficulty 取 drill（操练）或 standard（标准）；visual_tilt=true 开启沿坡倾斜，false 回到直立贴地（便于接骨骼对照）；layer_variant_seed 控制远景/中景变体的平铺交替，改动即可换一套排布。leader=上次选定的领队（wusong/linchong/likui）；input_offset_ms=指南校准的个人拍点偏移（正=习惯晚拍）；guide_seen=是否已进入过指南；runner_display=急行提示层级（novice/skilled/master），TAB 循环切换。"
+}

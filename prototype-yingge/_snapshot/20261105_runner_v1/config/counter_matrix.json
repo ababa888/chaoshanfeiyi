@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "description": "阵法 × Boss 招式伤害倍率矩阵。>1 表示阵法克制该招（破绽增益，玩家对 Boss 伤害放大）；<1 表示被克（伤害衰减）；=1 中性。",
+  "bonus_kind": "damage_multiplier",
+  "bonus_note": "选择伤害倍率而非额外充能：克制反馈必须立刻可见（克字印 + 跳字），且不会与 Fever 充能叠加导致节奏失控；缩短 Boss 公示会反过来伤害可读性。",
+  "matrix": {
+    "changshe":   {"slam": 1.25, "sweep": 0.90, "charge": 1.00, "grab": 1.30, "roar": 1.00},
+    "fengshi":    {"slam": 0.95, "sweep": 0.85, "charge": 1.10, "grab": 1.35, "roar": 0.90},
+    "guijia":     {"slam": 1.10, "sweep": 1.35, "charge": 0.80, "grab": 0.85, "roar": 1.30},
+    "shuanglong": {"slam": 1.20, "sweep": 1.00, "charge": 1.35, "grab": 1.05, "roar": 0.85},
+    "menghu":     {"slam": 1.15, "sweep": 0.80, "charge": 1.35, "grab": 1.30, "roar": 0.85}
+  }
+}

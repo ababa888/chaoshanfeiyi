@@ -1,0 +1,73 @@
+{
+  "_note": "跑酷（急行）模式参数。forms 为组 B：F 0.92–1.12；compound_rate 是每 8 拍全 Perfect 的加速度复利，默认 3.5%/层，改这里即可做敏感性；gap_loss_beats=成功穿缝的等效损失拍，hit_loss_beats=单次撞阵的等效损失拍（由 r_hit/t_recover 线性恢复实现）。display_level 取 novice / skilled / master。",
+  "bpm": 132,
+  "v_base": 1.0,
+  "v_floor": 0.22,
+  "p_cap": 0.90,
+  "max_hit_stacks": 3,
+  "compound_rate": 0.035,
+  "compound_max": 4,
+  "group_lead": 4,
+  "cell_lead": 2,
+  "warning_lead": 4,
+  "switch_window": 3,
+  "switch_beats": 2,
+  "switch_factor": 0.90,
+  "gap_loss_beats": 2.3,
+  "hit_loss_beats": 4.2,
+  "display_level": "novice",
+  "display_levels": ["novice", "skilled", "master"],
+  "forms": {
+    "changshe": {"name": "长蛇挺进", "f": 1.06},
+    "shuanglong": {"name": "双龙出海", "f": 1.12},
+    "menghu": {"name": "猛虎下山", "f": 1.12},
+    "fengshi": {"name": "锋矢", "f": 1.09},
+    "guijia": {"name": "龟甲", "f": 0.92},
+    "sihu": {"name": "四虎并驱", "f": 1.07},
+    "maisui": {"name": "麦穗花", "f": 0.98},
+    "tianluo": {"name": "田螺圈", "f": 0.95},
+    "sasimen": {"name": "杀四门", "f": 1.02}
+  },
+  "patterns": {
+    "changshe": "KKKK",
+    "shuanglong": "JJKK",
+    "menghu": "KLKL",
+    "fengshi": "JKJK",
+    "guijia": "LKLK"
+  },
+  "enemies": {
+    "light": {"name": "散兵", "r_hit": 0.56, "t_recover": 12},
+    "shield": {"name": "盾墙", "r_hit": 0.56, "t_recover": 12},
+    "pike": {"name": "拒马", "r_hit": 0.56, "t_recover": 12}
+  },
+  "culture": {
+    "_note": "三层文化状态：环境判定（世俗/神圣/历史），同键不同义。buffs 互斥且各自封顶。",
+    "enabled": true,
+    "rain_beats": 8,
+    "rain_slope": 1.08,
+    "rain_loss_cut": 0.30,
+    "rain_collect_beats": 6,
+    "rain_collect_hits": 3,
+    "rain_slow": 0.86,
+    "rain_penalty_beats": 0.6,
+    "guard_loss_cut": 0.30,
+    "guard_beats": 4,
+    "purify_per_drum": 3,
+    "popularity_max": 100.0,
+    "popularity_per_step": 1.2,
+    "stop_beats": 4,
+    "stop_pop": 30.0,
+    "fever_normal": 14,
+    "fever_pop": 10,
+    "martial_per": 3,
+    "martial_switch_beats": 1
+  },
+  "route": [
+    {"name": "城镇巡游", "steps": 60, "slope": 1.00, "enemy": "light", "recommend": "shuanglong", "gap_side": "left", "kind": "secular"},
+    {"name": "正面盾墙", "steps": 60, "slope": 1.00, "enemy": "shield", "recommend": "menghu", "gap_side": "right", "kind": "holy"},
+    {"name": "直线窄道", "steps": 60, "slope": 1.04, "enemy": "pike", "recommend": "fengshi", "gap_side": "left", "kind": "history"},
+    {"name": "林间散兵", "steps": 60, "slope": 0.96, "enemy": "light", "recommend": "shuanglong", "gap_side": "right", "kind": "holy"}
+  ],
+  "rating": {"S": 90.0, "A": 105.0, "B": 120.0},
+  "rating_culture": {"S": 115.0, "A": 130.0, "B": 145.0}
+}

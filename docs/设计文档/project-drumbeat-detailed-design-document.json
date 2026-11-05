@@ -1,0 +1,752 @@
+{
+  "document": {
+    "title": "《踏鼓》详细设计文档",
+    "subtitle": "英歌行者 · 横版跑酷动作游戏",
+    "project_codename": "踏鼓 / Project Drumbeat",
+    "version": "v1.0 详细设计稿",
+    "date": "2026-10-11",
+    "genre": "2D 横版跑酷动作 · 非遗主题",
+    "platforms": ["PC（Steam / WeGame）", "iOS", "Android"],
+    "target_audience": "12–30 岁动作与跑酷玩家；次级为速通与硬核动作玩家",
+    "confidentiality": "内部",
+    "authors": ["设计组"],
+    "companion_documents": [
+      "横版跑酷动作游戏策划案 v0.1（基础框架）",
+      "project-drumbeat-yingge-integration.json（英歌融合方案）",
+      "project-drumbeat-beat-judgement-tables.json（合拍判定与节拍表）"
+    ],
+    "note": "本文档为详细设计稿，所有数值为设计目标与初始假设，须经原型测试校准后定稿。"
+  },
+
+  "0_revision_history": [
+    { "version": "v0.1", "date": "2026-10-11", "change": "基础框架：横版跑酷动作核心玩法与关卡设计" },
+    { "version": "v0.2", "date": "2026-10-11", "change": "融入英歌舞元素，确立《踏鼓》主题与鼓点节奏战斗" },
+    { "version": "v1.0", "date": "2026-10-11", "change": "整合为详细设计文档，补齐动作帧数据、逐关设计、敌人图鉴、技术架构" }
+  ],
+
+  "1_project_overview": {
+    "one_liner": "一支英歌队穿越被「哑鼓」封住声音的潮汕城，玩家扮演队中「时迁」式的引路人，以英歌槌的双棒与鼓点节奏，一路击鼓开道、唤醒沉睡的梁山好汉。",
+
+    "design_principle": "不做贴皮。英歌舞的节奏内核（鼓点）与动作内核（双棒对击）直接成为玩法机制，而非仅作美术皮肤。",
+
+    "core_hook": "鼓点节奏战斗——攻击落在鼓点强拍触发「合拍」，伤害与鼓劲双重加成。玩家用「抢步」主动选择所处的 BPM 档位，即主动选择难度与收益。",
+
+    "experience_pillars": [
+      { "id": "P1", "name": "速度感", "definition": "移动本身即奖励，跑得快会被看见、被听见。", "implementation": ["相机前瞻随移速前移", "速度线 / 残影 / 径向模糊", "锣鼓乐随移速加密"] },
+      { "id": "P2", "name": "流畅感", "definition": "输入零延迟，动作不断链。", "implementation": ["起跳缓冲 120ms", "土狼时间 100ms", "取消窗口后 40% 帧", "死亡 3 秒内重开"] },
+      { "id": "P3", "name": "掌控感", "definition": "易上手、难精通，技巧天花板由玩家定义。", "implementation": ["合拍增益不设门槛", "对击弹反构成高风险高回报", "评价与排行榜驱动重玩"] }
+    ],
+
+    "target_platform_detail": [
+      { "platform": "PC", "priority": "体验优先", "framerate_target": "144fps", "input": "键鼠 + 手柄", "business": "买断制 + 关卡 DLC" },
+      { "platform": "iOS / Android", "priority": "留存优先", "framerate_target": "60fps", "input": "触屏虚拟控件（单手可玩）", "business": "免费下载 + 外观与赛季内购" }
+    ],
+
+    "benchmarks": [
+      { "reference": "《武士零》", "borrowed": "战斗节奏与手感" },
+      { "reference": "《忍者必须死 3》", "borrowed": "跑酷手感与关卡可读性" },
+      { "reference": "《我的朋友佩德罗》", "borrowed": "速度反馈与镜头语言" },
+      { "reference": "《只狼》", "borrowed": "弹反（对击）的风险回报设计" },
+      { "reference": "《Hi-Fi Rush》", "borrowed": "节奏战斗的可行性验证与无障碍设计" }
+    ],
+
+    "team_and_budget": {
+      "team_size": "6–8 人",
+      "roles": ["策划 2", "程序 2", "美术 2–3", "音频 1（外包 + 传承人合作）"],
+      "duration_months": 12,
+      "budget_tier": "中小体量独立游戏",
+      "external_partners": ["潮汕英歌非遗传承人（文化顾问）", "地方锣鼓乐团队（音乐录制）"]
+    }
+  },
+
+  "2_world_and_narrative": {
+    "setting": "架空但以潮汕地域文化为底本。一场「失声之疫」让城中的鼓声消失，英歌队无法起鼓，梁山好汉的石像在祠堂中沉睡。",
+    "antagonist": "「哑鼓」势力——以哑鼓之主为首，意图以静默抹去一切节拍与记忆。",
+    "player_role": "玩家是队中的引路人（时迁式角色），手执引路灵蛇与一对英歌槌，负责探路、破阵、重新敲响鼓声。",
+    "narrative_devices": [
+      "司鼓（宋江影）作为「鼓灵」在关卡间提供旁白与指引",
+      "每唤醒一位好汉（头槌 / 二槌 / 三槌 / 四槌），解锁对应脸谱外观",
+      "关卡场景按潮汕地理推进：祠堂 → 骑楼 → 牌坊街 → 渔港 → 祖祠"
+    ],
+    "tone": "庄重、热血、有仪式感。英歌舞兼具驱邪祈福属性，叙事应保留其庄严，不做戏谑化处理。",
+    "narrative_delivery": "弱叙事强氛围。不使用长段过场，故事通过场景、Boss 演出与图鉴文本碎片化传递，不打断跑酷节奏。"
+  },
+
+  "3_core_gameplay": {
+    "core_loop": {
+      "name": "巡、击、蓄鼓、满堂彩、收阵",
+      "duration_seconds": { "min": 90, "max": 150 },
+      "steps": [
+        { "order": 1, "name": "巡（起势）", "description": "从英歌队阵头出发，立即进入疾行，无需热身", "system_touchpoints": ["疾行", "灵蛇引导"] },
+        { "order": 2, "name": "击（穿越与对击）", "description": "穿越地形、击退拦路的哑鼓傀儡，可绕行或对击", "system_touchpoints": ["跑酷动作", "槌花连招", "对击弹反"] },
+        { "order": 3, "name": "蓄鼓", "description": "疾行、槌花连击、合拍、弹反共同积累鼓劲", "system_touchpoints": ["鼓劲槽", "合拍判定"] },
+        { "order": 4, "name": "满堂彩", "description": "鼓劲满槽且合拍连段达标时释放终结技，全场锣鼓齐鸣、范围清场", "system_touchpoints": ["满堂彩", "合拍连段"] },
+        { "order": 5, "name": "收阵", "description": "抵达阵尾，按用时、槌花、合拍率、收集评分", "system_touchpoints": ["结算评分", "星尘奖励"] }
+      ],
+      "design_rules": [
+        "死亡立即重开，单次重试成本 ≤ 3 秒",
+        "战斗不强制停顿，可边跑边打",
+        "绕行与击杀均可推进，但击杀额外获得鼓劲，形成「战斗换取速度」的正向循环"
+      ]
+    },
+
+    "action_system": {
+      "architecture": "有限状态机驱动。跑酷态与战斗态共享同一套位移参数，切换时不重置速度——这是「跑打无缝」的技术前提。",
+      "states": [
+        { "id": "Idle", "name": "立势", "category": "跑酷", "exit": ["Run"] },
+        { "id": "Run", "name": "疾行", "category": "跑酷", "exit": ["Dash", "Jump", "Slide", "AtkG", "Hurt"] },
+        { "id": "Dash", "name": "抢步", "category": "跑酷", "exit": ["Run"], "invincible_ms": 200, "cooldown_s": 0.25 },
+        { "id": "Jump", "name": "腾跃", "category": "跑酷", "exit": ["Air"] },
+        { "id": "Air", "name": "凌空", "category": "跑酷", "exit": ["Land", "Wall", "AtkA", "Hurt", "Dive"] },
+        { "id": "Land", "name": "落地", "category": "跑酷", "exit": ["Run"] },
+        { "id": "Wall", "name": "贴壁", "category": "跑酷", "exit": ["Air", "Run"] },
+        { "id": "Slide", "name": "矮子步", "category": "跑酷", "exit": ["Run", "AtkG"] },
+        { "id": "AtkG", "name": "挥槌", "category": "战斗", "exit": ["Run", "AtkG"] },
+        { "id": "AtkA", "name": "凌空挥槌", "category": "战斗", "exit": ["Air", "Dive"] },
+        { "id": "Dive", "name": "劈山", "category": "战斗", "exit": ["Land"] },
+        { "id": "Hurt", "name": "挫", "category": "状态", "exit": ["Run", "Dead"] },
+        { "id": "Dead", "name": "落阵", "category": "状态", "exit": [] }
+      ],
+      "moves": [
+        { "name": "疾行", "input": "移动", "params": { "acceleration_per_s2": 30, "max_speed": 8, "friction_per_s2": 40 }, "role": "节奏基准，决定所处 BPM 档位" },
+        { "name": "抢步", "input": "冲刺键", "params": { "speed": 14, "duration_ms": 250, "cooldown_s": 0.25, "invincible_ms": 200 }, "role": "位移与闪避合一，同时提速至快板档" },
+        { "name": "腾跃", "input": "跳跃键", "params": { "variable_height": true, "jump_height_units": 3.2, "air_time_ms": 520 }, "role": "越障与起手" },
+        { "name": "二段跳", "input": "凌空中再按跳", "params": { "reset_on_land": true, "second_jump_ratio": 0.8 }, "role": "空中连击与越障" },
+        { "name": "贴壁", "input": "贴墙", "params": { "slide_deceleration": true, "wall_jump_reverse_thrust": true }, "role": "垂直地形处理" },
+        { "name": "矮子步", "input": "下 + 攻击", "params": { "low_profile": true, "duration_ms": 400, "cancel_to_attack": true }, "role": "穿越低矮障碍；源自时迁标志性步法" },
+        { "name": "劈山", "input": "凌空下 + 攻击", "params": { "fast_fall": true, "aoe_on_land": true, "break_wall": true, "aoe_radius_units": 2.5 }, "role": "突进与破墙" }
+      ],
+      "frame_data": {
+        "note": "以 60fps 为参考帧率；startup 为出招前摇，active 为判定帧，recovery 为后摇。取消窗口位于 recovery 的后 40%。",
+        "attacks": [
+          { "name": "挥槌·一段", "startup_f": 8, "active_f": 4, "recovery_f": 14, "damage": 12, "cancel_window_f": 6, "notes": "最快起手，连招起式" },
+          { "name": "挥槌·二段", "startup_f": 7, "active_f": 4, "recovery_f": 14, "damage": 14, "cancel_window_f": 6, "notes": "可无缝衔接三段" },
+          { "name": "挥槌·三段", "startup_f": 12, "active_f": 5, "recovery_f": 24, "damage": 22, "cancel_window_f": 10, "notes": "末段击退，硬直较大" },
+          { "name": "凌空挥槌·一段", "startup_f": 6, "active_f": 4, "recovery_f": 10, "damage": 14, "cancel_window_f": 4, "notes": "空中起手" },
+          { "name": "凌空挥槌·二段", "startup_f": 8, "active_f": 4, "recovery_f": 16, "damage": 18, "cancel_window_f": 6, "notes": "可接下劈" },
+          { "name": "劈山", "startup_f": 10, "active_f": "直至落地", "recovery_f": 18, "damage": 30, "cancel_window_f": 0, "notes": "落地 AoE，半径 2.5 单位，可破墙" },
+          { "name": "对击", "startup_f": 2, "active_f": 8, "recovery_f": 12, "damage": 0, "notes": "弹反，无伤害但造成敌人硬直" }
+        ]
+      }
+    },
+
+    "combat_system": {
+      "combo_tree": {
+        "ground": [
+          { "stage": 1, "move": "挥槌·一段", "next": "挥槌·二段" },
+          { "stage": 2, "move": "挥槌·二段", "next": "挥槌·三段" },
+          { "stage": 3, "move": "挥槌·三段", "next": null, "effect": "击退" }
+        ],
+        "air": [
+          { "stage": 1, "move": "凌空挥槌·一段", "next": "凌空挥槌·二段" },
+          { "stage": 2, "move": "凌空挥槌·二段", "next": "劈山" }
+        ],
+        "cross": "空中连招可接劈山落地；落地后可立即接地面一段，形成不断链的连续输出"
+      },
+      "cancel_window": { "position": "动作 recovery 的后 40% 帧", "purpose": "允许提前取消并衔接下一段，把操作上限交给玩家" },
+      "stick_clash_parry": {
+        "name": "对击",
+        "input": "敌人攻击命中前 100ms 内按下攻击键",
+        "effect": "双棒交错叩击弹反，敌人进入 1.2 秒硬直，玩家获得鼓劲 +25",
+        "failure_penalty": "过早按键进入对击动作的后摇，暴露 12 帧破绽",
+        "cultural_basis": "对应英歌舞「双棒交错翻转叩击」的标志性动作",
+        "bonus": "若弹反恰好落在鼓点判定点上，判定为「合拍弹反」，鼓劲 ×2"
+      },
+      "hitstop": { "min_ms": 40, "max_ms": 80, "note": "命中瞬间定格，强化打击感；合拍命中取上限" },
+      "invincibility": { "dash_ms": 200, "finisher_ms": 1200, "hurt_recovery_invincible_ms": 800 },
+      "hit_count": { "increment_per_hit": 1, "reset_after_seconds": 2, "note": "对应「槌花」计数，进入评分维度" },
+      "design_rules": [
+        "战斗动作与跑酷动作共用位移，攻击时不锁死移动",
+        "所有攻击均可在抢步中发动，保证「边跑边打」成立",
+        "未合拍不打断连招、不影响取消窗口"
+      ]
+    },
+
+    "drumbeat_rhythm_system": {
+      "summary": "BGM 为潮州大锣鼓，具有明确 BPM；按键落在鼓点强拍窗口内触发「合拍」。合拍只提供增益，不设门槛。",
+      "time_signature": "4/4",
+      "judge_points": "固定落在每小节强拍（第 1、3 拍），不随 BPM 改变",
+      "tempo_layers": [
+        { "id": "slow", "name": "慢板", "bpm": 90, "judge_interval_ms": 1333, "drum_hits_per_bar": 4, "trigger": "移速 < 4", "note": "90 为设计值，非考据值" },
+        { "id": "mid", "name": "中板", "bpm": 110, "judge_interval_ms": 1091, "drum_hits_per_bar": 5, "trigger": "4 ≤ 移速 < 8", "note": "5 击循环源自潮阳英歌地方标准" },
+        { "id": "fast", "name": "快板", "bpm": 140, "judge_interval_ms": 857, "drum_hits_per_bar": 7, "trigger": "移速 ≥ 8（含抢步）", "note": "对应顶尖英歌队「快板中的快板」水平；7 击循环源自潮阳英歌地方标准" },
+        { "id": "extreme", "name": "极板", "bpm": 150, "judge_interval_ms": 800, "drum_hits_per_bar": 7, "trigger": "Boss 高潮段 / 满堂彩演出", "note": "由 160 下调至 150；与快板靠花奏密度而非速度区分" }
+      ],
+      "tempo_transition": { "mode": "分层离散切换", "switch_rule": "仅在小节边界切换，保证拍相位连续", "micro_adjust": "层内允许 ±8% 时间拉伸做精细速度映射", "crossfade_ms": 120, "hysteresis": "阈值附近设 ±0.5 单位/秒迟滞区间，避免频繁换板" },
+      "judgement": [
+        { "grade": "完美合拍", "tolerance_ms": 40, "damage_multiplier": 1.5, "drum_energy_multiplier": 1.8, "streak_delta": 1, "vfx": "金色槌花", "sfx": "锣 + 钹双响", "haptic": "强震" },
+        { "grade": "合拍", "tolerance_ms": 80, "damage_multiplier": 1.3, "drum_energy_multiplier": 1.5, "streak_delta": 1, "vfx": "白色槌花", "sfx": "钹单音", "haptic": "轻震" },
+        { "grade": "未合拍", "tolerance_ms": null, "damage_multiplier": 1.0, "drum_energy_multiplier": 1.0, "streak_delta": "归零", "vfx": "无", "sfx": "闷音", "haptic": "无" }
+      ],
+      "judge_anchor": { "default": "按键帧", "hardcore_option": "命中生效帧（硬核模式）" },
+      "judgement_flow": [
+        "玩家按下攻击键，系统立即取当前音频时钟时间戳并判定",
+        "判定反馈（锣钹音 / 槌花 / 合拍计数 / 震动）在按键帧立即触发",
+        "伤害倍率仅在攻击实际命中敌人时结算",
+        "空挥（未命中）不给鼓劲，但保留音效与判定反馈",
+        "不做动画吸附——本作是动作游戏，帧数据是战斗系统根基"
+      ],
+      "streak_tiers": [
+        { "streak": 4, "reward": "满堂彩就绪" },
+        { "streak": 8, "reward": "满堂彩伤害 +10%" },
+        { "streak": 12, "reward": "满堂彩伤害 +20%，全场锣鼓齐鸣演出" },
+        { "streak": 16, "reward": "满堂彩伤害 +30%（上限），结算额外评分加成" }
+      ],
+      "player_agency": "移速决定 BPM，BPM 决定判定密度，密度决定难度与鼓劲收益。玩家用「抢步」主动选择难度档位。",
+      "full_beat_table_reference": "完整锣鼓经节拍表（每小节 4 拍循环）见 companion_documents[2]",
+      "accessibility": [
+        { "id": "assist", "name": "节奏辅助", "changes": ["显示判定圈与节拍高亮", "窗口放宽至 ±120ms"] },
+        { "id": "visual_only", "name": "纯视觉节拍", "changes": ["灵蛇与鼓面图标提供完整视觉节拍，适配听障玩家"] },
+        { "id": "free", "name": "纯体验模式", "changes": ["关闭合拍判定与增益，鼓点仅作氛围"] }
+      ]
+    },
+
+    "drum_energy_system": {
+      "name": "鼓劲",
+      "gauge_max": 100,
+      "gain_sources": [
+        { "source": "疾行与跑酷动作", "value": "基础速率，随移速提升" },
+        { "source": "槌花连击", "value": "每命中 +3，连击数越高加成越大" },
+        { "source": "合拍", "value": "在基础值上乘 1.5–1.8 倍" },
+        { "source": "对击弹反", "value": "+25；合拍弹反 +50" }
+      ],
+      "decay": { "enabled": true, "rate_per_second": 2, "grace_seconds": 3, "note": "停止进攻 3 秒后缓慢衰减，鼓励持续推进" },
+      "finisher": {
+        "name": "满堂彩",
+        "trigger": "鼓劲满槽 + 合拍连段 ≥ 4",
+        "duration_ms": 2000,
+        "invincible_ms": 1200,
+        "damage": 200,
+        "aoe_radius_units": 6,
+        "effects": ["短暂无敌", "范围清场", "移速提升至 14 持续 5 秒", "全场锣鼓齐鸣演出"],
+        "design_intent": "奖励「持续高速且不断连击合拍」的玩家，让激进打法获得正反馈"
+      }
+    },
+
+    "game_feel_parameters": [
+      { "name": "起跳缓冲", "target": 120, "unit": "ms", "note": "落地前按跳，落地后自动起跳" },
+      { "name": "土狼时间", "target": 100, "unit": "ms", "note": "离开平台后仍可起跳" },
+      { "name": "攻击取消窗口", "target": 40, "unit": "% recovery 帧", "note": "位于动作后段" },
+      { "name": "抢步无敌帧", "target": 200, "unit": "ms", "note": "闪避期间免疫伤害" },
+      { "name": "命中停顿", "target": { "min": 40, "max": 80 }, "unit": "ms", "note": "合拍命中取上限" },
+      { "name": "相机前瞻", "target": 0.35, "unit": "屏幕宽度倍率", "note": "乘以当前速度" },
+      { "name": "最大移速", "target": 8, "unit": "单位/秒", "note": "抢步时 14" },
+      { "name": "对击判定窗口", "target": 100, "unit": "ms", "note": "敌人命中前可弹反的时间窗" },
+      { "name": "合拍判定锚点", "target": "按键帧", "unit": "-", "note": "命中帧锚点仅作为硬核模式可选" },
+      { "name": "受击无敌时间", "target": 800, "unit": "ms", "note": "避免连续受击致死" }
+    ],
+
+    "feedback_layers": {
+      "visual": ["速度线", "残影", "屏幕边缘径向模糊（随移速增强）", "合拍金色 / 白色槌花", "满堂彩全屏锣鼓演出"],
+      "audio": ["脚步声与鼓点同拍", "命中音落强拍", "合拍锣钹反馈", "满堂彩全场齐鸣"],
+      "haptic": ["命中震动", "受击震动", "完美合拍强震（均可关闭）"]
+    },
+
+    "mastery_model": {
+      "onboarding_floor": "新手使用基础跑酷与单段攻击即可通关全部主线；合拍、对击均可忽略",
+      "skill_ceiling": "合拍稳定性、对击时机、路线选择、鼓劲管理构成可无限优化的技巧空间",
+      "optimization_dimensions": ["通关时间", "合拍率", "最高连段", "受伤次数", "势能利用率"]
+    }
+  },
+
+  "4_level_design": {
+    "design_intent": "关卡以「赛段」为最小单位，通过赛段类型、阵型与难度曲线的组合控制节奏。难度曲线始终略高于玩家能力曲线，形成可持续停留的心流通道。",
+
+    "structure": {
+      "segments_per_level": { "min": 3, "max": 5 },
+      "level_duration_minutes": { "min": 2, "max": 4 },
+      "checkpoints": "每 1–2 个赛段设置一个检查点",
+      "restart_cost_seconds": 3,
+      "composition_rule": "每关开头为低风险热身赛段，结尾为高光赛段，中段承担教学与压力"
+    },
+
+    "segment_types": [
+      { "id": "S-PARKOUR", "name": "纯跑酷", "goal": "建立节奏，考验路线与操作精度", "duration_seconds": { "min": 25, "max": 40 }, "risk": "低", "typical_content": "静态 + 动态障碍，无或极少敌人", "tempo": "慢板 / 中板" },
+      { "id": "S-MIX", "name": "跑酷 + 战斗", "goal": "检验「边跑边打」", "duration_seconds": { "min": 30, "max": 50 }, "risk": "中", "typical_content": "巡逻兵 / 枪手 + 移动平台", "tempo": "中板" },
+      { "id": "S-ELITE", "name": "精英战", "goal": "集中考验战斗技巧与对击时机", "duration_seconds": { "min": 30, "max": 45 }, "risk": "中高", "typical_content": "盾兵 / 重装 / 无人机组合", "tempo": "中板 / 快板" },
+      { "id": "S-BOSS", "name": "Boss 战", "goal": "综合检验本关所学机制", "duration_seconds": { "min": 60, "max": 120 }, "risk": "高", "typical_content": "三阶段 Boss + 跑酷场地", "tempo": "中板 → 极板" }
+    ],
+
+    "formation_system": {
+      "description": "把英歌舞阵型作为敌人波次与障碍编排的统一语言，每个阵型对应一种可识别的战斗—跑酷组合。",
+      "formations": [
+        { "name": "长蛇阵", "pattern": "敌人首尾相接成列，如蛇行推进", "player_task": "沿线击破，考验连续合拍", "used_levels": [1, 2, 8] },
+        { "name": "双龙出海", "pattern": "两列敌人平行推进，中间留出跑酷通道", "player_task": "择一路突破，兼顾对击与穿越", "used_levels": [4, 6, 9] },
+        { "name": "猛虎下山", "pattern": "重装敌人自高处俯冲压阵", "player_task": "用无敌帧穿插，或以劈山反打", "used_levels": [5, 11] },
+        { "name": "粉蝶采花", "pattern": "空中敌人轻盈分散、多点骚扰", "player_task": "二段跳空中槌花清理", "used_levels": [3, 7, 10] },
+        { "name": "四阵轮转", "pattern": "四种阵型依次出现", "player_task": "综合检验全部机制", "used_levels": [12] }
+      ],
+      "design_rule": "每个赛段的敌人编排须明确归属某一种阵型，避免随机堆叠"
+    },
+
+    "pacing_model": {
+      "tension_curve": "波峰波谷交替，紧张赛段后必须安排短暂喘息",
+      "phases": [
+        { "name": "热身", "role": "低风险进入状态", "segment_index": "第 1 个赛段", "tempo": "慢板" },
+        { "name": "教学", "role": "引入本关新机制，安全环境先体验", "segment_index": "第 2 个赛段", "tempo": "慢板 → 中板" },
+        { "name": "压力", "role": "在真实威胁下应用新机制", "segment_index": "第 3 个赛段", "tempo": "中板 → 快板" },
+        { "name": "高光", "role": "综合运用并收束，推向高潮", "segment_index": "末个赛段", "tempo": "快板 → 极板" }
+      ],
+      "rules": [
+        "连续两个高张力赛段之间必须插入喘息点",
+        "新机制首次出现时不得同时施加生存压力",
+        "每关至少保留一次「满堂彩」的高光释放机会"
+      ]
+    },
+
+    "obstacle_library": {
+      "static": [
+        { "name": "尖刺", "purpose": "建立基础跳跃节奏", "teaching_level": 1 },
+        { "name": "坑洞", "purpose": "考验跳跃距离判断", "teaching_level": 1 },
+        { "name": "矮墙", "purpose": "引导矮子步", "teaching_level": 1 }
+      ],
+      "dynamic": [
+        { "name": "移动平台", "purpose": "制造需要观察与预判的节拍", "teaching_level": 2 },
+        { "name": "旋转锯", "purpose": "限时通过的节奏压力", "teaching_level": 3 },
+        { "name": "周期性锣鼓机关", "purpose": "随鼓点开合，观察—等待—抢步的循环训练", "teaching_level": 5 }
+      ],
+      "interactive": [
+        { "name": "可破坏墙体", "purpose": "把劈山反哺到跑酷路线", "teaching_level": 5 },
+        { "name": "加速带（鼓风）", "purpose": "临时提速，放大速度感与风险", "teaching_level": 9 },
+        { "name": "鼓面弹板", "purpose": "踩击鼓面获得高跳，呼应英歌鼓", "teaching_level": 7 }
+      ]
+    },
+
+    "enemy_placement_rules": [
+      "单个赛段内同屏敌人不超过 6 个",
+      "敌人不得与致命陷阱重叠布置，防止无解组合",
+      "枪手类敌人必须提供可绕行或可突进的路线",
+      "首次出现的敌人类型须在无陷阱环境中登场",
+      "精英敌人之间保持至少一个喘息区间",
+      "空中敌人需配合可二段跳或墙跳的地形",
+      "Boss 战场地不得将玩家逼入无解角落"
+    ],
+
+    "levels": [
+      {
+        "id": 1, "name": "出队·祠堂", "theme": "潮汕祠堂", "tempo_span": "慢板", "formation": "长蛇阵",
+        "new_mechanic": "疾行 / 腾跃 / 矮子步", "difficulty": 10, "target_time_seconds": 90, "boss": null,
+        "segments": [
+          { "id": "1-1", "type": "S-PARKOUR", "tempo": "慢板", "duration_s": 25, "content": "祠堂前庭，尖刺与矮墙交替", "enemies": [], "obstacles": ["尖刺", "矮墙"], "checkpoint_after": false },
+          { "id": "1-2", "type": "S-PARKOUR", "tempo": "慢板", "duration_s": 30, "content": "廊柱区，引导腾跃与矮子步", "enemies": [], "obstacles": ["坑洞", "矮墙"], "checkpoint_after": true },
+          { "id": "1-3", "type": "S-MIX", "tempo": "慢板", "duration_s": 35, "content": "首次遭遇哑鼓傀儡，无陷阱环境", "enemies": ["巡逻兵 ×2"], "obstacles": [], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱残页 ×1"],
+        "design_notes": "全程慢板，无对击与合拍压力。目标是让玩家在零威胁下熟悉三个基础动作。"
+      },
+      {
+        "id": 2, "name": "骑楼疾行", "theme": "骑楼老街", "tempo_span": "慢板 → 中板", "formation": "长蛇阵",
+        "new_mechanic": "抢步 / 合拍引入", "difficulty": 16, "target_time_seconds": 100, "boss": null,
+        "segments": [
+          { "id": "2-1", "type": "S-PARKOUR", "tempo": "慢板", "duration_s": 25, "content": "骑楼长廊，引导抢步穿越", "enemies": [], "obstacles": ["坑洞"], "checkpoint_after": false },
+          { "id": "2-2", "type": "S-MIX", "tempo": "慢板", "duration_s": 35, "content": "首次出现鼓点提示，教学合拍", "enemies": ["巡逻兵 ×3"], "obstacles": ["移动平台"], "checkpoint_after": true },
+          { "id": "2-3", "type": "S-PARKOUR", "tempo": "中板", "duration_s": 30, "content": "冲刺段，移速进入中板", "enemies": [], "obstacles": ["移动平台", "旋转锯"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱残页 ×1", "锣鼓乐片段 ×1"],
+        "design_notes": "合拍首次登场，仅作视觉与音效提示，不要求命中。让玩家自然建立「鼓点=攻击时机」的直觉。"
+      },
+      {
+        "id": 3, "name": "锣鼓市集", "theme": "老城市集", "tempo_span": "中板", "formation": "粉蝶采花",
+        "new_mechanic": "二段跳 / 对击弹反", "difficulty": 22, "target_time_seconds": 110, "boss": null,
+        "segments": [
+          { "id": "3-1", "type": "S-PARKOUR", "tempo": "中板", "duration_s": 30, "content": "市集棚顶，引导二段跳", "enemies": [], "obstacles": ["坑洞", "移动平台"], "checkpoint_after": false },
+          { "id": "3-2", "type": "S-MIX", "tempo": "中板", "duration_s": 40, "content": "空中敌人首次登场，教学对击", "enemies": ["无人机 ×2", "巡逻兵 ×2"], "obstacles": ["旋转锯"], "checkpoint_after": true },
+          { "id": "3-3", "type": "S-ELITE", "tempo": "中板", "duration_s": 40, "content": "精英战，检验对击时机", "enemies": ["盾兵 ×1", "巡逻兵 ×3"], "obstacles": [], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱残页 ×1", "建筑手稿 ×1"],
+        "design_notes": "对击首次登场。教学顺序：先单独面对一个攻击慢的巡逻兵练弹反，再进入精英战。"
+      },
+      {
+        "id": 4, "name": "牌坊叠影", "theme": "牌坊街", "tempo_span": "中板 → 快板", "formation": "双龙出海",
+        "new_mechanic": "贴壁 / 墙跳（能力跃迁）", "difficulty": 30, "target_time_seconds": 120, "boss": null,
+        "segments": [
+          { "id": "4-1", "type": "S-PARKOUR", "tempo": "中板", "duration_s": 30, "content": "牌坊垂直空间，引导贴壁与墙跳", "enemies": [], "obstacles": ["坑洞"], "checkpoint_after": false },
+          { "id": "4-2", "type": "S-ELITE", "tempo": "快板", "duration_s": 40, "content": "双龙出海阵，两列敌人平行推进", "enemies": ["巡逻兵 ×4", "枪手 ×2"], "obstacles": ["移动平台"], "checkpoint_after": true },
+          { "id": "4-3", "type": "S-MIX", "tempo": "快板", "duration_s": 45, "content": "墙跳穿越段，敌人与地形叠加", "enemies": ["枪手 ×3", "无人机 ×1"], "obstacles": ["旋转锯"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱残页 ×1", "脸谱残页 ×1"],
+        "design_notes": "能力跃迁关。墙跳解锁后，难度跳升至 30，但新能力提供了对应解法。"
+      },
+      {
+        "id": 5, "name": "哑鼓回廊", "theme": "被封印的戏台", "tempo_span": "中板 → 快板", "formation": "猛虎下山",
+        "new_mechanic": "劈山破墙 / 周期性锣鼓机关", "difficulty": 36, "target_time_seconds": 120, "boss": null,
+        "segments": [
+          { "id": "5-1", "type": "S-MIX", "tempo": "中板", "duration_s": 35, "content": "戏台回廊，首次出现可破坏墙体", "enemies": ["巡逻兵 ×3"], "obstacles": ["可破坏墙体"], "checkpoint_after": false },
+          { "id": "5-2", "type": "S-ELITE", "tempo": "快板", "duration_s": 40, "content": "猛虎下山阵，重装俯冲", "enemies": ["重装 ×1", "巡逻兵 ×3"], "obstacles": ["周期性锣鼓机关"], "checkpoint_after": true },
+          { "id": "5-3", "type": "S-PARKOUR", "tempo": "快板", "duration_s": 35, "content": "机关节奏段，随鼓点开合", "enemies": [], "obstacles": ["周期性锣鼓机关", "旋转锯"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱残页 ×1", "锣鼓乐片段 ×1"],
+        "design_notes": "首次把「鼓点」从音效变成环境机制——机关随鼓点开合，让玩家用身体记住节拍。"
+      },
+      {
+        "id": 6, "name": "鼓王擂台", "theme": "英歌擂台", "tempo_span": "中板 → 极板", "formation": "双龙出海",
+        "new_mechanic": "槌花取消 / 首个 Boss", "difficulty": 45, "target_time_seconds": 150, "boss": "鼓王·哑音",
+        "segments": [
+          { "id": "6-1", "type": "S-MIX", "tempo": "中板", "duration_s": 35, "content": "擂台外围，教学连招取消", "enemies": ["巡逻兵 ×4"], "obstacles": [], "checkpoint_after": false },
+          { "id": "6-2", "type": "S-ELITE", "tempo": "快板", "duration_s": 40, "content": "双龙出海阵，检验取消窗口", "enemies": ["盾兵 ×1", "枪手 ×2", "巡逻兵 ×2"], "obstacles": ["移动平台"], "checkpoint_after": true },
+          { "id": "6-3", "type": "S-BOSS", "tempo": "中板 → 极板", "duration_s": 90, "content": "鼓王·哑音 三阶段", "enemies": [], "obstacles": ["鼓面弹板"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱·头槌", "锣鼓乐片段 ×1"],
+        "design_notes": "首个 Boss，机制为「跟拍对击」。第三阶段引入极板，是玩家第一次接触最高密度节奏。"
+      },
+      {
+        "id": 7, "name": "海门风急", "theme": "海门渔港", "tempo_span": "中板 → 快板", "formation": "粉蝶采花",
+        "new_mechanic": "贴壁滑行 / 鼓面弹板", "difficulty": 52, "target_time_seconds": 130, "boss": null,
+        "segments": [
+          { "id": "7-1", "type": "S-PARKOUR", "tempo": "中板", "duration_s": 30, "content": "渔港栈道，引导鼓面弹板高跳", "enemies": [], "obstacles": ["鼓面弹板", "坑洞"], "checkpoint_after": false },
+          { "id": "7-2", "type": "S-PARKOUR", "tempo": "快板", "duration_s": 35, "content": "船桅垂直段，贴壁滑行", "enemies": [], "obstacles": ["移动平台"], "checkpoint_after": true },
+          { "id": "7-3", "type": "S-ELITE", "tempo": "快板", "duration_s": 45, "content": "粉蝶采花阵，空中敌人集群", "enemies": ["无人机 ×4", "枪手 ×2"], "obstacles": [], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱残页 ×1", "建筑手稿 ×1"],
+        "design_notes": "开阔场景，强调速度与风感。空中敌人集群逼迫玩家掌握空中槌花。"
+      },
+      {
+        "id": 8, "name": "蛇阵迷踪", "theme": "古巷蛇巷", "tempo_span": "中板 → 快板", "formation": "长蛇阵",
+        "new_mechanic": "灵蛇引导强化（能力跃迁）", "difficulty": 60, "target_time_seconds": 140, "boss": null,
+        "segments": [
+          { "id": "8-1", "type": "S-PARKOUR", "tempo": "中板", "duration_s": 35, "content": "蛇巷，灵蛇开始主动提示隐藏路线", "enemies": [], "obstacles": ["可破坏墙体"], "checkpoint_after": false },
+          { "id": "8-2", "type": "S-MIX", "tempo": "快板", "duration_s": 40, "content": "长蛇阵，敌人成列推进", "enemies": ["巡逻兵 ×5", "枪手 ×2"], "obstacles": ["周期性锣鼓机关"], "checkpoint_after": true },
+          { "id": "8-3", "type": "S-ELITE", "tempo": "快板", "duration_s": 45, "content": "精英连战，考验合拍稳定性", "enemies": ["重装 ×1", "盾兵 ×2"], "obstacles": [], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱·二槌", "脸谱残页 ×2"],
+        "design_notes": "能力跃迁关。灵蛇强化后开始指引隐藏收集物路线，奖励探索型玩家。"
+      },
+      {
+        "id": 9, "name": "渔火长街", "theme": "渔港夜市", "tempo_span": "快板", "formation": "双龙出海",
+        "new_mechanic": "加速带（鼓风）", "difficulty": 68, "target_time_seconds": 140, "boss": null,
+        "segments": [
+          { "id": "9-1", "type": "S-MIX", "tempo": "快板", "duration_s": 40, "content": "夜市长街，鼓风加速带首次登场", "enemies": ["巡逻兵 ×4"], "obstacles": ["加速带", "坑洞"], "checkpoint_after": false },
+          { "id": "9-2", "type": "S-ELITE", "tempo": "快板", "duration_s": 45, "content": "双龙出海阵，高速通过", "enemies": ["枪手 ×3", "盾兵 ×1"], "obstacles": ["移动平台", "旋转锯"], "checkpoint_after": true },
+          { "id": "9-3", "type": "S-PARKOUR", "tempo": "快板", "duration_s": 35, "content": "连续加速带冲刺段", "enemies": [], "obstacles": ["加速带", "旋转锯"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱残页 ×1", "锣鼓乐片段 ×1"],
+        "design_notes": "全关快板，考验长时间维持合拍。加速带让玩家体验「主动进入更高难度档位」。"
+      },
+      {
+        "id": 10, "name": "纸鸢风暴", "theme": "纸鸢广场", "tempo_span": "快板", "formation": "粉蝶采花",
+        "new_mechanic": "空中合拍", "difficulty": 76, "target_time_seconds": 150, "boss": null,
+        "segments": [
+          { "id": "10-1", "type": "S-PARKOUR", "tempo": "快板", "duration_s": 35, "content": "纸鸢广场，高空平台跳跃", "enemies": [], "obstacles": ["移动平台", "鼓面弹板"], "checkpoint_after": false },
+          { "id": "10-2", "type": "S-MIX", "tempo": "快板", "duration_s": 45, "content": "空中敌人密集，教学空中合拍", "enemies": ["无人机 ×5"], "obstacles": [], "checkpoint_after": true },
+          { "id": "10-3", "type": "S-ELITE", "tempo": "快板", "duration_s": 50, "content": "粉蝶采花阵，全空中作战", "enemies": ["无人机 ×4", "枪手 ×2"], "obstacles": ["移动平台"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱·三槌", "脸谱残页 ×1"],
+        "design_notes": "空中合拍要求玩家在滞空状态下也保持节奏感，是合拍系统的高阶应用。"
+      },
+      {
+        "id": 11, "name": "司鼓之塔", "theme": "鼓楼", "tempo_span": "快板 → 极板", "formation": "猛虎下山",
+        "new_mechanic": "机制综合", "difficulty": 85, "target_time_seconds": 180, "boss": "司鼓·宋江影",
+        "segments": [
+          { "id": "11-1", "type": "S-PARKOUR", "tempo": "快板", "duration_s": 35, "content": "鼓楼垂直攀登", "enemies": [], "obstacles": ["鼓面弹板", "坑洞"], "checkpoint_after": false },
+          { "id": "11-2", "type": "S-ELITE", "tempo": "快板", "duration_s": 50, "content": "猛虎下山阵，重装集群", "enemies": ["重装 ×2", "盾兵 ×2"], "obstacles": ["周期性锣鼓机关"], "checkpoint_after": true },
+          { "id": "11-3", "type": "S-BOSS", "tempo": "快板 → 极板", "duration_s": 95, "content": "司鼓·宋江影 三阶段", "enemies": [], "obstacles": ["鼓面弹板"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱·四槌", "锣鼓乐片段 ×1"],
+        "design_notes": "Boss 第二阶段「镜像对击」要求玩家不看鼓点、只看 Boss 预备动作，是对节奏依赖的一次反转。"
+      },
+      {
+        "id": 12, "name": "满堂彩", "theme": "普宁祖祠", "tempo_span": "快板 → 极板", "formation": "四阵轮转",
+        "new_mechanic": "综合检验", "difficulty": 95, "target_time_seconds": 210, "boss": "哑鼓之主",
+        "segments": [
+          { "id": "12-1", "type": "S-PARKOUR", "tempo": "快板", "duration_s": 40, "content": "祖祠前庭，综合跑酷考验", "enemies": [], "obstacles": ["加速带", "鼓面弹板", "可破坏墙体"], "checkpoint_after": false },
+          { "id": "12-2", "type": "S-ELITE", "tempo": "快板", "duration_s": 50, "content": "四阵轮转，全敌人类型", "enemies": ["重装 ×1", "盾兵 ×2", "无人机 ×2", "枪手 ×2"], "obstacles": [], "checkpoint_after": true },
+          { "id": "12-3", "type": "S-BOSS", "tempo": "极板", "duration_s": 120, "content": "哑鼓之主 三阶段", "enemies": [], "obstacles": ["鼓面弹板"], "checkpoint_after": false }
+        ],
+        "collectibles": ["脸谱·全收集奖励", "锣鼓乐片段 ×1"],
+        "design_notes": "终局关。Boss 第一阶段「静音」剥夺 BGM，把玩家逼到纯视觉节拍，是对全作节奏理解的总检验。"
+      }
+    ],
+
+    "bosses": [
+      {
+        "id": "B1", "name": "鼓王·哑音", "level": 6, "theme": "被夺去声音的司鼓", "arena": "英歌擂台",
+        "hp": 1200, "phases": [
+          { "phase": 1, "hp_ratio": 0.4, "tempo": "中板", "mechanic_exam": "敲出慢板，玩家需跟拍对击", "attacks": ["横扫槌", "踏地震波"], "vulnerable_window": "每 4 小节末拍后 1.5 秒" },
+          { "phase": 2, "hp_ratio": 0.35, "tempo": "快板", "mechanic_exam": "抢拍——在反拍插入闷鼓重音，诱导提前按键", "attacks": ["抢拍假动作", "三连槌"], "vulnerable_window": "抢拍落空后 1.2 秒" },
+          { "phase": 3, "hp_ratio": 0.25, "tempo": "极板", "mechanic_exam": "全场鼓声叠加，考验合拍稳定性与走位", "attacks": ["鼓阵合击", "旋风槌"], "vulnerable_window": "合击后的喘息 1 秒" }
+        ],
+        "transition_rule": "每次阶段转换播放 1.5 秒无敌演出，全场清弹"
+      },
+      {
+        "id": "B2", "name": "司鼓·宋江影", "level": 11, "theme": "英歌队灵魂人物的暗影", "arena": "鼓楼顶层",
+        "hp": 1800, "phases": [
+          { "phase": 1, "hp_ratio": 0.4, "tempo": "快板", "mechanic_exam": "召唤梁山好汉阵型，玩家需破阵", "attacks": ["长蛇阵召唤", "双龙出海冲锋"], "vulnerable_window": "阵型被击破后 2 秒" },
+          { "phase": 2, "hp_ratio": 0.35, "tempo": "快板", "mechanic_exam": "镜像对击——与玩家同步出招，需看预备动作弹反", "attacks": ["镜像三连", "同步斩"], "vulnerable_window": "对击成功即硬直 1.5 秒" },
+          { "phase": 3, "hp_ratio": 0.25, "tempo": "极板", "mechanic_exam": "以鼓点锁定玩家位置，需边跑边打", "attacks": ["鼓点追踪", "号角冲击波"], "vulnerable_window": "锁定间隙 0.8 秒" }
+        ],
+        "transition_rule": "每次阶段转换播放 1.5 秒无敌演出，全场清弹"
+      },
+      {
+        "id": "B3", "name": "哑鼓之主", "level": 12, "theme": "封印潮汕声音的源头", "arena": "普宁祖祠",
+        "hp": 2400, "phases": [
+          { "phase": 1, "hp_ratio": 0.4, "tempo": "静音（无 BGM）", "mechanic_exam": "剥夺 BGM，玩家需靠灵蛇与鼓面图标判断节拍", "attacks": ["无声突袭", "沉默领域"], "vulnerable_window": "沉默领域边缘 1.5 秒", "compensation": "此阶段判定窗口放宽至 ±120ms" },
+          { "phase": 2, "hp_ratio": 0.35, "tempo": "快板", "mechanic_exam": "四阵轮转，综合检验全部机制", "attacks": ["四阵连击", "鼓阵压制"], "vulnerable_window": "每阵结束 1.5 秒" },
+          { "phase": 3, "hp_ratio": 0.25, "tempo": "极板", "mechanic_exam": "重夺鼓点，以满堂彩收束全场", "attacks": ["终焉合奏", "鼓浪冲击"], "vulnerable_window": "合奏间隙 1 秒", "special": "此阶段玩家鼓劲获取翻倍，鼓励以满堂彩终结" }
+        ],
+        "transition_rule": "每次阶段转换播放 1.5 秒无敌演出，全场清弹"
+      }
+    ],
+
+    "difficulty_curve": {
+      "note": "设计目标值，用于校准关卡难度与成长节奏，非实测数据。难度始终略高于能力。",
+      "levels": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "difficulty": [10, 16, 22, 30, 36, 45, 52, 60, 68, 76, 85, 95],
+      "player_ability": [8, 15, 24, 32, 40, 48, 55, 63, 70, 79, 86, 94],
+      "ability_jump_levels": [
+        { "level": 4, "unlock": "墙跳", "reason": "承接难度跳升，提供新的垂直位移能力" },
+        { "level": 8, "unlock": "灵蛇引导强化", "reason": "承接中期跳升，打开隐藏路线" }
+      ],
+      "design_rule": "任何单关难度增幅不超过前关的 30%，避免出现挫败断崖"
+    },
+
+    "teaching_progression": {
+      "principle": "前三关不使用文字教学，全部通过关卡设计教学；灵蛇是主要的视觉引导手段。",
+      "steps": ["安全环境", "引导使用", "施加压力"],
+      "unlock_schedule": [
+        { "level": 1, "mechanic": "疾行 / 腾跃 / 矮子步" },
+        { "level": 2, "mechanic": "抢步 / 合拍（仅提示）" },
+        { "level": 3, "mechanic": "二段跳 / 对击弹反" },
+        { "level": 4, "mechanic": "贴壁 / 墙跳" },
+        { "level": 5, "mechanic": "劈山破墙 / 锣鼓机关" },
+        { "level": 6, "mechanic": "槌花取消 / Boss 战" },
+        { "level": 7, "mechanic": "贴壁滑行 / 鼓面弹板" },
+        { "level": 8, "mechanic": "灵蛇引导强化" },
+        { "level": 9, "mechanic": "加速带（鼓风）" },
+        { "level": 10, "mechanic": "空中合拍" },
+        { "level": 11, "mechanic": "镜像对击 / 机制综合" },
+        { "level": 12, "mechanic": "静音节拍 / 全机制检验" }
+      ]
+    },
+
+    "scoring": {
+      "dimensions": [
+        { "name": "用时", "weight": 0.40, "description": "相对目标时间越短得分越高" },
+        { "name": "槌花", "weight": 0.20, "description": "最高连段数与平均连击维持时长" },
+        { "name": "合拍率", "weight": 0.25, "description": "完美合拍计 1.0、合拍计 0.7、未合拍计 0" },
+        { "name": "收集", "weight": 0.15, "description": "隐藏收集物完成度" }
+      ],
+      "ranks": [
+        { "rank": "S", "threshold": 90, "reward": "星尘 ×1.5" },
+        { "rank": "A", "threshold": 75, "reward": "星尘 ×1.2" },
+        { "rank": "B", "threshold": 60, "reward": "星尘 ×1.0" },
+        { "rank": "C", "threshold": 40, "reward": "星尘 ×0.8" },
+        { "rank": "D", "threshold": 0, "reward": "星尘 ×0.5" }
+      ],
+      "note": "星尘仅用于解锁外观、概念设定与挑战模式，不与数值强度挂钩。"
+    },
+
+    "challenge_levels": [
+      { "id": "C1", "name": "合拍大师", "rule": "全程维持合拍连段，断拍即失败", "metric": "存活时间" },
+      { "id": "C2", "name": "无声试炼", "rule": "关闭 BGM，仅凭视觉节拍通关", "metric": "通关时间" },
+      { "id": "C3", "name": "满堂彩竞速", "rule": "最短时间内释放指定次数满堂彩", "metric": "用时" },
+      { "id": "C4", "name": "阵型反转", "rule": "所有阵型倒序排列，重玩主线", "metric": "通关时间" }
+    ]
+  },
+
+  "5_enemies": {
+    "roster": [
+      { "name": "巡逻兵", "hp": 40, "damage": 10, "behavior": "直线巡逻，近战挥砍", "threat": "低", "counter": "抢步闪避后反击", "attack_frame": { "startup_f": 20, "active_f": 5, "recovery_f": 20 }, "parry_difficulty": "易" },
+      { "name": "枪手", "hp": 35, "damage": 15, "behavior": "远程点射，保持距离", "threat": "中", "counter": "绕后接近或劈山突进", "attack_frame": { "startup_f": 25, "active_f": 3, "recovery_f": 25 }, "parry_difficulty": "中" },
+      { "name": "盾兵", "hp": 80, "damage": 20, "behavior": "正面免伤，需破防", "threat": "中", "counter": "背击或满堂彩破防", "attack_frame": { "startup_f": 28, "active_f": 6, "recovery_f": 28 }, "parry_difficulty": "中" },
+      { "name": "无人机", "hp": 25, "damage": 12, "behavior": "空中骚扰，俯冲攻击", "threat": "中", "counter": "二段跳空中槌花", "attack_frame": { "startup_f": 18, "active_f": 4, "recovery_f": 22 }, "parry_difficulty": "中" },
+      { "name": "重装", "hp": 200, "damage": 30, "behavior": "高血量，范围重击", "threat": "高", "counter": "无敌帧穿插输出", "attack_frame": { "startup_f": 40, "active_f": 8, "recovery_f": 35 }, "parry_difficulty": "难" }
+    ],
+    "damage_reference": {
+      "player_hp": 100,
+      "normal_enemy_damage_range": [10, 25],
+      "boss_damage_range": [25, 40],
+      "design_rule": "普通敌人单次失误不致命；Boss 可承受 2–3 次失误"
+    },
+    "ai_principles": [
+      "敌人优先维持攻击节奏而非追身，保证玩家可预判",
+      "所有敌人攻击均有明确前摇动作，支持对击弹反",
+      "同屏敌人攻击错开节奏，避免同时命中造成无解伤害"
+    ]
+  },
+
+  "6_progression_and_numbers": {
+    "growth_dimensions": [
+      { "dimension": "生命上限", "base": 100, "max": 120, "source": "关卡推进自动提升" },
+      { "dimension": "鼓劲上限", "base": 100, "max": 100, "source": "固定" },
+      { "dimension": "槌花伤害倍率", "base": 1.0, "max": 1.15, "source": "技能解锁小幅提升" }
+    ],
+    "skill_unlocks": ["二段跳 → 贴壁 / 墙跳 → 劈山破墙 → 槌花取消 → 空中合拍"],
+    "economy": {
+      "currency": "星尘",
+      "sources": ["关卡评价", "挑战关卡", "每周挑战"],
+      "uses": ["角色外观（好汉脸谱）", "终结技特效", "概念设定图鉴", "挑战模式解锁"],
+      "hard_rule": "星尘不可购买数值、不可购买关卡门槛、不可兑换战斗力"
+    },
+    "cosmetic_system": {
+      "face_paint_unlocks": ["头槌（李逵风格）", "二槌（关胜风格）", "三槌（鲁智深风格）", "四槌（武松风格）"],
+      "note": "仅外观与终结技演出差异，无数值差异",
+      "collectibles": ["英歌脸谱图鉴", "锣鼓乐片段", "潮汕建筑手稿"]
+    }
+  },
+
+  "7_art_and_audio": {
+    "art_direction": {
+      "theme": "潮汕地域文化 + 英歌仪式感",
+      "palette": { "primary": ["脸谱红", "墨黑", "瓷白", "描金"], "note": "以英歌脸谱的红黑白金为主色，替代原设霓虹赛博配色" },
+      "player_character": "时迁式引路人，头扎武士巾、身着武士服、挂腰牌，剪影清晰优先",
+      "enemy_design": "「哑鼓」傀儡，以灰白褪色为主，与好汉的红黑金形成鲜明对比",
+      "readability_rules": ["剪影优先：纯黑填充也能辨认姿态", "危险元素统一橙红警示色 + 形状区分", "前景高饱和、背景低饱和加雾，形成景深"],
+      "vfx": ["合拍金色 / 白色槌花", "满堂彩全场锣鼓演出", "速度线与残影", "鼓面弹板击打涟漪"]
+    },
+    "audio_direction": {
+      "music": "潮州大锣鼓为基底，慢板 / 中板 / 快板 / 极板按移速分层切换（小节对齐，层内 ±8% 微调）",
+      "instruments": [
+        { "name": "大鼓", "role": "节奏骨架，BPM 载体", "gameplay": "判定点落在其重拍" },
+        { "name": "大锣", "role": "强拍强调", "gameplay": "合拍成功主反馈音" },
+        { "name": "大钹 / 小钹", "role": "八分填充", "gameplay": "提示节奏密度" },
+        { "name": "号角", "role": "段落标记", "gameplay": "赛段转换 / Boss 登场 / 满堂彩" }
+      ],
+      "sfx": ["脚步声与鼓点同拍", "槌击采用真实英歌槌音色采样", "对击为双棒叩击实录", "闷音提示未合拍"],
+      "production_note": "建议与潮汕锣鼓乐团队合作原创录制，明确版权归属"
+    }
+  },
+
+  "8_ui_ux": {
+    "hud": {
+      "principle": "极简常驻，仅四项：生命、鼓劲、槌花、计时",
+      "elements": [
+        { "name": "生命", "position": "左上", "style": "横向条" },
+        { "name": "鼓劲槽", "position": "左上（生命下方）", "style": "鼓面纹样环形或横条，满槽时描金高亮" },
+        { "name": "槌花计数", "position": "右上", "style": "数字 + 槌花图标" },
+        { "name": "计时", "position": "右上", "style": "数字" },
+        { "name": "合拍提示", "position": "角色上方或屏幕中央偏下", "style": "锣钹形判定圈，随鼓点收缩" }
+      ],
+      "world_space": "战斗提示使用世界内元素（敌人头顶警示），不使用弹窗"
+    },
+    "tutorial_ui": {
+      "principle": "前三关无文字教学，灵蛇承担引导",
+      "mechanism": "新机制按「安全环境 → 引导使用 → 施加压力」三步引入；灵蛇在需要时变色与加速"
+    },
+    "mobile_controls": {
+      "principle": "单手可玩，控件位置与大小可自定义",
+      "layout": "左手虚拟摇杆，右手跳跃 / 攻击 / 抢步 / 对击四键",
+      "options": ["左手 / 右手模式", "控件透明度", "触屏判定窗口额外放宽 20ms"]
+    },
+    "accessibility": [
+      "色盲模式：危险元素增加形状与纹理区分",
+      "屏幕震动与闪烁可关闭",
+      "节奏辅助：判定圈、窗口放宽至 ±120ms",
+      "纯视觉节拍模式：适配听障玩家",
+      "纯体验模式：关闭合拍判定与增益",
+      "速度敏感度与相机前瞻可调（易晕动症友好）"
+    ]
+  },
+
+  "9_monetization": {
+    "pc": { "model": "买断制", "dlc": "关卡包 DLC（新赛段 / 新敌人 / 新 Boss），不拆分割本体内容" },
+    "mobile": { "model": "免费下载", "revenue": ["角色外观（好汉脸谱）", "终结技特效", "赛季通行证"] },
+    "hard_rules": ["不售卖数值", "不售卖关卡门槛", "不设置战力值", "付费玩家与免费玩家在同一条技巧曲线上竞争"],
+    "live_ops": [
+      "每周挑战关卡：固定随机种子，全球排行榜比拼通关时间",
+      "赛季主题外观与限时活动",
+      "后期规划关卡编辑器与创意工坊，把内容产能部分交给社区"
+    ]
+  },
+
+  "10_technical": {
+    "engine": { "choice": "Unity 2022 LTS（2D URP）", "reason": "双端工具链成熟，2D 与移动端支持完善" },
+    "core_modules": [
+      { "module": "运动与物理", "choice": "自研固定步长运动系统", "reason": "平台跳跃需要确定性与可控手感，不依赖通用刚体" },
+      { "module": "输入", "choice": "统一输入抽象层", "reason": "键鼠 / 手柄 / 触屏映射到同一套动作语义" },
+      { "module": "音频时钟", "choice": "AudioSettings.dspTime 驱动判定", "reason": "帧率波动不影响判定公平性" },
+      { "module": "鼓点调度", "choice": "前瞻调度 150–250ms", "reason": "避免卡顿造成漏拍" },
+      { "module": "关卡数据", "choice": "ScriptableObject / JSON 驱动", "reason": "策划可独立配置关卡，无需改代码" },
+      { "module": "性能", "choice": "对象池 + 图集 + 分级画质", "reason": "移动端稳定 60fps，PC 目标 144fps" },
+      { "module": "联网", "choice": "轻量后端（排行榜 / 云存档）", "reason": "不做实时对战，控制复杂度与成本" }
+    ],
+    "latency_pipeline": "输入延迟补偿 = 设备音频输出延迟 + 输入采样延迟 + 用户校准偏移",
+    "frame_targets": { "pc": "144fps", "mobile": "60fps", "judgement_frame_independent": true },
+    "data_pipeline": "每首曲目一份鼓点表（JSON / ScriptableObject），含 BPM 曲线、判定点时间轴、乐器轨",
+    "debug_tools": ["判定调试面板：实时显示 Δt、判定等级、连段、当前 BPM 与拍相位", "手感参数实时调节面板", "关卡跳转与状态注入"],
+    "key_tradeoff": "放弃通用物理引擎的便利，换取确定性与手感可控性。代价是自研碰撞与运动系统，收益是双端体验一致且可精确调优。"
+  },
+
+  "11_roadmap_and_risks": {
+    "milestones": [
+      { "phase": "M0 原型", "weeks": 4, "deliverable": "单一赛段可玩原型 + 手感调节面板", "acceptance": "核心循环成立，手感参数可调；鼓点判定在音频时钟上跑通" },
+      { "phase": "M1 垂直切片", "weeks": 8, "deliverable": "1 完整关卡 + 1 Boss（鼓王）+ 完整合拍系统", "acceptance": "达到目标手感、美术与音频标准；合拍机制经真人试玩验证" },
+      { "phase": "M2 MVP", "weeks": 12, "deliverable": "8 关卡 + 成长系统 + 对击弹反 + 灵蛇引导", "acceptance": "完整循环可通关，合拍与对击形成技巧深度" },
+      { "phase": "M3 内容填充", "weeks": 8, "deliverable": "12 关卡 + 全敌人类型 + 3 Boss + 挑战关卡", "acceptance": "内容量与难度曲线达标" },
+      { "phase": "M4 打磨上线", "weeks": 8, "deliverable": "性能优化 + 商业化接入 + 文化审校", "acceptance": "双端性能与稳定性达标，文化呈现通过传承人审校" }
+    ],
+    "risks": [
+      { "risk": "节奏机制与跑酷动作冲突", "impact": "高", "response": "合拍仅作增益不作门槛；M0 即验证「边跑边合拍」是否成立，不成立则降级为纯音效反馈" },
+      { "risk": "手感调优周期不可控", "impact": "高", "response": "M0 阶段引入外部试玩，手感优先于内容" },
+      { "risk": "文化考据与流派差异", "impact": "中高", "response": "引入非遗传承人顾问，按关卡区域区分流派特征，避免混用" },
+      { "risk": "锣鼓乐版权与录制成本", "impact": "中", "response": "与地方锣鼓乐团队合作原创录制，明确版权归属" },
+      { "risk": "抢拍 / 乱拍机制被感知为不公平", "impact": "中", "response": "Boss 抢拍使用可区分的闷鼓音色；A/B 测试后再定稿" },
+      { "risk": "合拍判定引发挫败（尤其移动端）", "impact": "中", "response": "提供节奏辅助、纯视觉节拍、纯体验三档模式" },
+      { "risk": "主题受众面收窄", "impact": "中", "response": "核心玩法保留普适跑酷动作体验，非遗作为表现层而非理解门槛" },
+      { "risk": "移动端性能与操作", "impact": "中", "response": "移动端提前介入，控制同屏单位与特效预算" }
+    ],
+    "open_questions": [
+      "按键帧锚点的 ±40 / ±80 窗口是否合适，需在 M0 原型用真人试玩验证",
+      "极板 150 BPM 的可接受性需经英歌非遗传承人确认",
+      "每关单独谱曲 vs 模板换音色的成本取舍",
+      "移动端单手操作下，对击 + 合拍双系统是否过载"
+    ]
+  },
+
+  "12_cultural_compliance": {
+    "heritage_status": "英歌舞为第一批国家级非物质文化遗产（2006 年入选）",
+    "principles": [
+      "保留英歌舞的庄重与仪式感，不做戏谑化、猎奇化处理",
+      "邀请潮汕英歌非遗传承人担任文化顾问，参与动作、脸谱、锣鼓乐的审校",
+      "动作与脸谱设计需经传承人确认，避免对各流派风格的误用或混用",
+      "游戏内设置「英歌小百科」，向玩家介绍非遗背景与地域流派",
+      "商业使用非遗元素涉及传承人及地方文化机构权益，需提前沟通授权与署名"
+    ],
+    "regional_variations": [
+      { "region": "潮阳", "feature": "节奏较快、动作刚猛" },
+      { "region": "普宁", "feature": "阵法多变、队伍庞大" },
+      { "region": "惠来", "feature": "风格粗犷、脸谱夸张" }
+    ],
+    "accuracy_caveats": [
+      "头槌扮演者存在李逵与秦明两种流派说法，设计避免绑定单一考据",
+      "不同英歌队流派差异明显，建议按关卡区域区分特征",
+      "英歌舞兼具驱邪祈福的仪式属性，叙事应保留其庄严"
+    ],
+    "risk_note": "若文化呈现失真或不当，可能引发非遗保护群体与地方舆论的负面反馈，需在立项早期完成文化审校。"
+  },
+
+  "13_appendix": {
+    "key_numbers_summary": {
+      "player_hp": 100,
+      "max_speed": 8,
+      "dash_speed": 14,
+      "jump_buffer_ms": 120,
+      "coyote_ms": 100,
+      "dash_invincible_ms": 200,
+      "hitstop_ms": [40, 80],
+      "parry_window_ms": 100,
+      "cancel_window": "recovery 后 40%",
+      "drum_energy_max": 100,
+      "finisher_damage": 200,
+      "perfect_window_ms": 40,
+      "good_window_ms": 80,
+      "bpm_range": [90, 150],
+      "judge_anchor": "按键帧",
+      "judge_points": "每小节第 1、3 拍",
+      "streak_for_finisher": 4,
+      "levels": 12,
+      "bosses": 3,
+      "challenge_levels": 4
+    },
+    "glossary": [
+      { "term": "英歌槌", "definition": "英歌舞使用的彩色木棒，长约 40cm、直径约 5cm" },
+      { "term": "锣鼓经", "definition": "以拟声字记录锣鼓节奏的传统记谱方式，如「咚、匡、才、七」" },
+      { "term": "合拍", "definition": "攻击命中落在鼓点强拍判定窗口内的操作，本作核心机制" },
+      { "term": "鼓劲", "definition": "本作势能槽，由疾行、槌花、合拍、弹反积累" },
+      { "term": "满堂彩", "definition": "本作终结技，鼓劲满槽且合拍连段达标时释放" },
+      { "term": "对击", "definition": "双棒交错叩击的弹反动作" },
+      { "term": "矮子步", "definition": "时迁标志性低姿态步法，本作滑铲动作" },
+      { "term": "阵型", "definition": "英歌舞的队形变化，本作敌人波次编排语言" },
+      { "term": "板式", "definition": "慢板 / 中板 / 快板 / 极板，本作 BPM 档位" }
+    ]
+  }
+}

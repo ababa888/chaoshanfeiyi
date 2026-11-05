@@ -1,0 +1,329 @@
+{
+  "document": {
+    "title": "《疾影》核心玩法与关卡设计文档",
+    "project": "疾影 / Project Blur",
+    "version": "v0.1",
+    "date": "2026-10-11",
+    "genre": "2D 横版跑酷动作",
+    "platforms": ["PC", "iOS", "Android"],
+    "scope": ["核心玩法", "关卡设计"],
+    "related_document": "横版跑酷动作游戏策划案 v0.1",
+    "confidentiality": "内部",
+    "note": "本文件所有数值均为设计目标与初始假设，需经原型测试验证后迭代。"
+  },
+
+  "core_gameplay": {
+    "design_intent": "跑酷与战斗不是两种玩法，而是同一套动作语言的两个面向。跑酷态与战斗态共享位移参数，切换时不重置速度，玩家可以在高速运动中直接完成击杀，不需要停顿、不需要切换模式。",
+
+    "pillars": [
+      {
+        "id": "P1",
+        "name": "速度感",
+        "definition": "移动本身即奖励，跑得快会被看见、被听见。",
+        "design_actions": [
+          "相机前瞻：视野随移速前移",
+          "速度线、残影、屏幕边缘径向模糊，强度随移速线性增强",
+          "BGM 随移速动态混音，速度越快鼓点越密"
+        ]
+      },
+      {
+        "id": "P2",
+        "name": "流畅感",
+        "definition": "输入零延迟，动作不断链，玩家不会因为一次操作卡住而死亡。",
+        "design_actions": [
+          "起跳缓冲 120ms 与土狼时间 100ms 提供操作宽容",
+          "攻击后 40% 帧为取消窗口，允许提前衔接",
+          "死亡后 3 秒内重开，重试成本极低"
+        ]
+      },
+      {
+        "id": "P3",
+        "name": "掌控感",
+        "definition": "易上手、难精通，技巧天花板由玩家自己定义。",
+        "design_actions": [
+          "新手靠基础动作即可通关",
+          "高手通过路线选择与连招取消刷高评价",
+          "评价与排行榜驱动重复挑战"
+        ]
+      }
+    ],
+
+    "core_loop": {
+      "name": "跑、打、蓄、爆、结算",
+      "duration_seconds": { "min": 90, "max": 150 },
+      "steps": [
+        { "order": 1, "name": "进入赛段", "description": "从起点出发，立即进入高速跑酷状态，无需热身" },
+        { "order": 2, "name": "穿越与战斗", "description": "跑酷途中遭遇敌人，可绕行或击杀，战斗不打断跑酷节奏" },
+        { "order": 3, "name": "蓄势", "description": "跑酷动作与连击共同积累势能，鼓励保持高速且不断连击" },
+        { "order": 4, "name": "终结", "description": "势能满槽释放终结技，短暂无敌、范围清场并提升移速" },
+        { "order": 5, "name": "结算", "description": "抵达终点，按用时、连击、收集三项评分，解锁星尘与内容" }
+      ],
+      "design_rules": [
+        "死亡立即重开，单次重试成本不超过 3 秒",
+        "战斗不强制停顿，可边跑边打",
+        "绕行与击杀均可推进，但击杀额外获得势能，形成「战斗换取速度」的正向循环"
+      ]
+    },
+
+    "action_system": {
+      "state_model_note": "角色以有限状态机驱动，跑酷态与战斗态共用同一套位移参数，任意状态均可无缝转入攻击或受击。",
+      "states": [
+        { "id": "Idle", "name": "待机", "category": "跑酷" },
+        { "id": "Run", "name": "奔跑", "category": "跑酷" },
+        { "id": "Dash", "name": "冲刺", "category": "跑酷" },
+        { "id": "Jump", "name": "起跳", "category": "跑酷" },
+        { "id": "Air", "name": "滞空", "category": "跑酷" },
+        { "id": "Land", "name": "落地", "category": "跑酷" },
+        { "id": "Wall", "name": "墙滑", "category": "跑酷" },
+        { "id": "Slide", "name": "滑铲", "category": "跑酷" },
+        { "id": "AtkG", "name": "地面攻击", "category": "战斗" },
+        { "id": "AtkA", "name": "空中攻击", "category": "战斗" },
+        { "id": "Dive", "name": "下劈", "category": "战斗" },
+        { "id": "Hurt", "name": "受击", "category": "状态" },
+        { "id": "Dead", "name": "死亡", "category": "状态" }
+      ],
+      "moves": [
+        { "name": "跑", "input": "默认", "params": { "acceleration_per_s2": 30, "max_speed": 8 }, "role": "节奏基准" },
+        { "name": "冲刺", "input": "冲刺键", "params": { "speed": 14, "cooldown_s": 0.25, "invincible_ms": 200 }, "role": "位移与闪避合一" },
+        { "name": "跳跃", "input": "跳跃键", "params": { "variable_height": true }, "role": "越障与起手" },
+        { "name": "二段跳", "input": "空中再按跳", "params": { "reset_on_land": true }, "role": "空中连击与越障" },
+        { "name": "墙滑", "input": "贴墙", "params": { "slide_deceleration": true }, "role": "垂直地形处理" },
+        { "name": "墙跳", "input": "墙滑中按跳", "params": { "reverse_thrust": true }, "role": "垂直地形推进" },
+        { "name": "滑铲", "input": "下 + 攻击", "params": { "low_profile": true, "cancel_to_attack": true }, "role": "穿越低矮障碍" },
+        { "name": "下劈", "input": "空中下 + 攻击", "params": { "fast_fall": true, "aoe_on_land": true, "break_wall": true }, "role": "突进与破墙" }
+      ]
+    },
+
+    "combat_system": {
+      "combo": {
+        "ground": { "stages": 3, "finisher_effect": "末段击退" },
+        "air": { "stages": 2, "follow_up": "可接下劈落地" }
+      },
+      "cancel_window": { "position": "动作后 40% 帧", "purpose": "允许玩家提前取消并衔接下一段，把操作上限交给玩家" },
+      "hit_count": { "increment_per_hit": 1, "reset_after_seconds": 2, "purpose": "鼓励持续进攻，避免站桩" },
+      "invincibility": { "dash_ms": 200 },
+      "hitstop_ms": { "min": 40, "max": 80 },
+      "design_rules": [
+        "战斗动作与跑酷动作共用位移，攻击时不锁死移动",
+        "连招可在地面与空中互相衔接，形成连续高光",
+        "所有攻击均可在冲刺中发动，保证「边跑边打」成立"
+      ]
+    },
+
+    "momentum_system": {
+      "gauge_max": 100,
+      "gain_sources": [
+        { "source": "跑酷动作", "examples": ["冲刺", "墙跳", "下劈", "连续穿越"], "note": "奖励高风险位移" },
+        { "source": "连击", "examples": ["每次命中", "连击数加成"], "note": "奖励持续进攻" }
+      ],
+      "finisher": {
+        "trigger": "势能满槽",
+        "damage": 200,
+        "effects": ["短暂无敌", "范围清场", "移速提升"],
+        "design_intent": "奖励「持续高速且不断连击」的玩家，让激进打法获得正反馈"
+      }
+    },
+
+    "game_feel_parameters": [
+      { "name": "起跳缓冲", "target": 120, "unit": "ms", "note": "落地前按跳，落地后自动起跳" },
+      { "name": "土狼时间", "target": 100, "unit": "ms", "note": "离开平台后仍可起跳的宽容窗口" },
+      { "name": "攻击取消窗口", "target": 40, "unit": "% 动作帧", "note": "位于动作后段" },
+      { "name": "冲刺无敌帧", "target": 200, "unit": "ms", "note": "闪避期间免疫伤害" },
+      { "name": "命中停顿", "target": { "min": 40, "max": 80 }, "unit": "ms", "note": "命中瞬间定格，强化打击感" },
+      { "name": "相机前瞻", "target": 0.35, "unit": "屏幕宽度倍率", "note": "乘以当前速度，跑得越快视野越靠前" },
+      { "name": "最大移速", "target": 8, "unit": "单位/秒", "note": "冲刺时提升至 14" }
+    ],
+
+    "feedback_layers": {
+      "visual": ["速度线", "残影", "屏幕边缘径向模糊（随移速增强）", "终结技全屏闪白与色差"],
+      "audio": ["跑酷脚步与 BGM 同拍", "命中音落在强拍", "终结技独立音色"],
+      "haptic": ["移动端命中震动", "移动端受击震动（可关闭）"]
+    },
+
+    "mastery_model": {
+      "onboarding_floor": "新手使用基础跑酷与单段攻击即可通关全部主线",
+      "skill_ceiling": "取消窗口、路线选择、势能管理构成可无限优化的技巧空间",
+      "optimization_dimensions": ["通关时间", "连击数上限", "受伤次数", "势能利用率"]
+    }
+  },
+
+  "level_design": {
+    "design_intent": "关卡以「赛段」为最小单位，通过赛段类型与难度曲线的组合控制节奏。难度曲线始终略高于玩家能力曲线，形成一条可以持续停留的心流通道。",
+
+    "structure": {
+      "segments_per_level": { "min": 3, "max": 5 },
+      "level_duration_minutes": { "min": 2, "max": 4 },
+      "checkpoints": "每 1–2 个赛段设置一个检查点",
+      "restart_cost_seconds": 3,
+      "composition_rule": "每关开头为低风险热身赛段，结尾为高光赛段，中段承担教学与压力"
+    },
+
+    "segment_types": [
+      {
+        "id": "S-PARKOUR",
+        "name": "纯跑酷",
+        "goal": "建立节奏，考验路线与操作精度",
+        "duration_seconds": { "min": 25, "max": 40 },
+        "risk": "低",
+        "typical_content": "静态障碍 + 动态障碍，无或极少敌人"
+      },
+      {
+        "id": "S-MIX",
+        "name": "跑酷 + 战斗",
+        "goal": "检验「边跑边打」，在移动中处理敌人",
+        "duration_seconds": { "min": 30, "max": 50 },
+        "risk": "中",
+        "typical_content": "巡逻兵 / 枪手 + 移动平台，敌人与地形叠加"
+      },
+      {
+        "id": "S-ELITE",
+        "name": "精英战",
+        "goal": "集中考验战斗技巧与闪避时机",
+        "duration_seconds": { "min": 30, "max": 45 },
+        "risk": "中高",
+        "typical_content": "盾兵 / 重装 / 无人机组合，场地含跑酷元素"
+      },
+      {
+        "id": "S-BOSS",
+        "name": "Boss 战",
+        "goal": "综合检验本关所学机制",
+        "duration_seconds": { "min": 60, "max": 120 },
+        "risk": "高",
+        "typical_content": "三阶段 Boss，场地含跑酷路线"
+      }
+    ],
+
+    "pacing_model": {
+      "tension_curve": "波峰波谷交替，紧张赛段后必须安排短暂喘息",
+      "phases": [
+        { "name": "热身", "role": "低风险进入状态", "segment_index_hint": "第 1 个赛段" },
+        { "name": "教学", "role": "引入本关新机制，安全环境先体验", "segment_index_hint": "第 2 个赛段" },
+        { "name": "压力", "role": "在真实威胁下应用新机制", "segment_index_hint": "第 3 个赛段" },
+        { "name": "高光", "role": "综合运用并收束，推向高潮", "segment_index_hint": "末个赛段" }
+      ],
+      "rules": [
+        "连续两个高张力赛段之间必须插入喘息点（短跑酷段或安全区）",
+        "新机制首次出现时不得同时施加生存压力",
+        "每关至少保留一次「势能满槽」的高光释放机会"
+      ]
+    },
+
+    "obstacle_library": {
+      "static": [
+        { "name": "尖刺", "purpose": "建立基础跳跃节奏", "teaching_level": 1 },
+        { "name": "坑洞", "purpose": "考验跳跃距离判断", "teaching_level": 1 },
+        { "name": "矮墙", "purpose": "引导滑铲", "teaching_level": 1 }
+      ],
+      "dynamic": [
+        { "name": "移动平台", "purpose": "制造需要观察与预判的节拍", "teaching_level": 2 },
+        { "name": "旋转锯", "purpose": "限时通过的节奏压力", "teaching_level": 3 },
+        { "name": "周期性激光", "purpose": "观察—等待—冲刺的循环训练", "teaching_level": 5 }
+      ],
+      "interactive": [
+        { "name": "可破坏墙体", "purpose": "把下劈战斗动作反哺到跑酷路线", "teaching_level": 5 },
+        { "name": "加速带", "purpose": "临时提速，放大速度感与风险", "teaching_level": 9 }
+      ]
+    },
+
+    "enemy_placement_rules": [
+      "单个赛段内同屏敌人不超过 6 个，避免视觉与操作过载",
+      "敌人不得与致命陷阱重叠布置，防止无解组合",
+      "枪手类敌人必须提供可绕行或可突进的路线",
+      "首次出现的敌人类型须在无陷阱环境中登场",
+      "精英敌人之间保持至少一个喘息区间",
+      "空中敌人需配合可二段跳或墙跳的地形"
+    ],
+
+    "enemy_roster": [
+      { "name": "巡逻兵", "behavior": "直线巡逻，近战挥砍", "threat": "低", "counter": "冲刺闪避后反击" },
+      { "name": "枪手", "behavior": "远程点射，保持距离", "threat": "中", "counter": "绕后接近或下劈突进" },
+      { "name": "盾兵", "behavior": "正面免伤，需破防", "threat": "中", "counter": "背击或终结技破防" },
+      { "name": "无人机", "behavior": "空中骚扰，俯冲攻击", "threat": "中", "counter": "二段跳空中连击" },
+      { "name": "重装", "behavior": "高血量，范围重击", "threat": "高", "counter": "闪避无敌帧穿插输出" }
+    ],
+
+    "boss_design": {
+      "phase_count": 3,
+      "per_phase": [
+        { "phase": 1, "mechanic_exam": "诱导冲撞，考验闪避时机" },
+        { "phase": 2, "mechanic_exam": "破防窗口，考验连招衔接" },
+        { "phase": 3, "mechanic_exam": "地形利用与跑酷结合，考验边跑边打" }
+      ],
+      "arena_rules": [
+        "场地包含跑酷元素（可攀墙体、可破坏结构、移动平台）",
+        "阶段转换时全场清弹并给出喘息窗口",
+        "Boss 不得将玩家逼入无解角落，边界需保留逃生路线"
+      ],
+      "transition_rule": "每次阶段转换播放 1.5 秒无敌演出，期间 Boss 不攻击"
+    },
+
+    "difficulty_curve": {
+      "note": "数据为设计目标值，用于校准关卡难度与成长节奏，非实测数据。难度始终略高于能力。",
+      "levels": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+      "metrics": {
+        "difficulty": [10, 16, 22, 30, 36, 45, 52, 60, 68, 76, 85, 95],
+        "player_ability": [8, 15, 24, 32, 40, 48, 55, 63, 70, 79, 86, 94]
+      },
+      "ability_jump_levels": [
+        { "level": 4, "unlock": "墙跳", "reason": "承接难度跳升，提供新的垂直位移能力" },
+        { "level": 8, "unlock": "下劈破墙", "reason": "承接中期难度跳升，打开隐藏路线与战斗解法" }
+      ],
+      "design_rule": "任何单关难度增幅不超过前关的 30%，避免出现挫败断崖"
+    },
+
+    "main_campaign": [
+      { "id": 1, "name": "序章·觉醒", "theme": "废弃地铁", "new_mechanic": "跑 / 跳 / 滑铲", "segments": ["S-PARKOUR", "S-PARKOUR", "S-MIX"], "difficulty": 10, "target_time_seconds": 90, "boss": null },
+      { "id": 2, "name": "高架疾行", "theme": "断裂高架桥", "new_mechanic": "冲刺", "segments": ["S-PARKOUR", "S-MIX", "S-PARKOUR"], "difficulty": 16, "target_time_seconds": 100, "boss": null },
+      { "id": 3, "name": "霓虹市集", "theme": "夜市街区", "new_mechanic": "二段跳", "segments": ["S-PARKOUR", "S-MIX", "S-ELITE"], "difficulty": 22, "target_time_seconds": 110, "boss": null },
+      { "id": 4, "name": "断轨", "theme": "断裂轨道", "new_mechanic": "墙跳（能力跃迁）", "segments": ["S-PARKOUR", "S-ELITE", "S-MIX"], "difficulty": 30, "target_time_seconds": 120, "boss": null },
+      { "id": 5, "name": "数据回廊", "theme": "服务器机房", "new_mechanic": "可破坏墙体", "segments": ["S-MIX", "S-ELITE", "S-PARKOUR"], "difficulty": 36, "target_time_seconds": 120, "boss": null },
+      { "id": 6, "name": "地下拳场", "theme": "地下竞技场", "new_mechanic": "连招取消", "segments": ["S-MIX", "S-ELITE", "S-BOSS"], "difficulty": 45, "target_time_seconds": 150, "boss": "拳王·铁砧" },
+      { "id": 7, "name": "垂直深渊", "theme": "通风竖井", "new_mechanic": "墙滑", "segments": ["S-PARKOUR", "S-PARKOUR", "S-ELITE"], "difficulty": 52, "target_time_seconds": 130, "boss": null },
+      { "id": 8, "name": "破碎穹顶", "theme": "穹顶废墟", "new_mechanic": "下劈破墙（能力跃迁）", "segments": ["S-PARKOUR", "S-MIX", "S-ELITE"], "difficulty": 60, "target_time_seconds": 140, "boss": null },
+      { "id": 9, "name": "光缆丛林", "theme": "光缆区", "new_mechanic": "加速带", "segments": ["S-MIX", "S-ELITE", "S-PARKOUR"], "difficulty": 68, "target_time_seconds": 140, "boss": null },
+      { "id": 10, "name": "天台风暴", "theme": "高楼天台", "new_mechanic": "无人机群", "segments": ["S-PARKOUR", "S-MIX", "S-ELITE"], "difficulty": 76, "target_time_seconds": 150, "boss": null },
+      { "id": 11, "name": "中央枢纽", "theme": "枢纽塔", "new_mechanic": "机制综合", "segments": ["S-PARKOUR", "S-ELITE", "S-BOSS"], "difficulty": 85, "target_time_seconds": 180, "boss": "守望者·零" },
+      { "id": 12, "name": "信使之巅", "theme": "塔顶", "new_mechanic": "无（综合检验）", "segments": ["S-PARKOUR", "S-ELITE", "S-BOSS"], "difficulty": 95, "target_time_seconds": 210, "boss": "终焉·疾影" }
+    ],
+
+    "challenge_levels": [
+      { "id": "C1", "name": "无尽回廊", "rule": "无限赛段，比谁跑得更远", "metric": "距离" },
+      { "id": "C2", "name": "限时突袭", "rule": "3 分钟限时，尽可能多通关卡", "metric": "通关数" },
+      { "id": "C3", "name": "一击必杀", "rule": "一血模式，任何伤害即死亡", "metric": "通关时间" },
+      { "id": "C4", "name": "镜像反转", "rule": "左右操作反转，重玩主线", "metric": "通关时间" }
+    ],
+
+    "teaching_progression": {
+      "principle": "前三关不使用文字教学，全部通过关卡设计教学。",
+      "steps": ["安全环境", "引导使用", "施加压力"],
+      "unlock_schedule": [
+        { "level": 1, "mechanic": "跑 / 跳 / 滑铲" },
+        { "level": 2, "mechanic": "冲刺" },
+        { "level": 3, "mechanic": "二段跳" },
+        { "level": 4, "mechanic": "墙跳" },
+        { "level": 5, "mechanic": "下劈破墙" },
+        { "level": 6, "mechanic": "连招取消" },
+        { "level": 7, "mechanic": "墙滑" },
+        { "level": 8, "mechanic": "下劈强化" },
+        { "level": 9, "mechanic": "加速带" },
+        { "level": 10, "mechanic": "空中作战" }
+      ]
+    },
+
+    "scoring": {
+      "dimensions": [
+        { "name": "用时", "weight": 0.5, "description": "相对目标时间越短得分越高" },
+        { "name": "连击", "weight": 0.3, "description": "最高连击数与平均连击维持时长" },
+        { "name": "收集", "weight": 0.2, "description": "关卡内隐藏收集物完成度" }
+      ],
+      "ranks": [
+        { "rank": "S", "threshold": 90, "reward": "星尘 ×1.5" },
+        { "rank": "A", "threshold": 75, "reward": "星尘 ×1.2" },
+        { "rank": "B", "threshold": 60, "reward": "星尘 ×1.0" },
+        { "rank": "C", "threshold": 40, "reward": "星尘 ×0.8" },
+        { "rank": "D", "threshold": 0, "reward": "星尘 ×0.5" }
+      ],
+      "note": "星尘仅用于解锁外观、概念设定与挑战模式，不与数值强度挂钩。"
+    }
+  }
+}

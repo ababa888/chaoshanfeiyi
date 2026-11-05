@@ -1,0 +1,58 @@
+{
+  "note": "手感参数（M0 可实时调节）。数值来自详细设计文档 3_core_gameplay.game_feel_parameters 与动作系统。",
+  "motion": {
+    "acceleration_per_s2": 30.0,
+    "max_speed": 8.0,
+    "friction_per_s2": 40.0,
+    "gravity_per_s2": 42.0,
+    "jump_height_units": 3.2,
+    "air_time_ms": 520,
+    "second_jump_ratio": 0.8,
+    "dash_speed": 14.0,
+    "dash_duration_ms": 250,
+    "dash_cooldown_s": 0.25,
+    "dash_invincible_ms": 200,
+    "slide_duration_ms": 400
+  },
+  "assist": {
+    "jump_buffer_ms": 120,
+    "coyote_ms": 100,
+    "hurt_invincible_ms": 800,
+    "hitstop_min_ms": 40,
+    "hitstop_max_ms": 80,
+    "camera_lookahead_ratio": 0.35,
+    "cancel_window_pct": 40
+  },
+  "combat": {
+    "player_hp": 100,
+    "parry_window_ms": 100,
+    "parry_stun_ms": 1200,
+    "parry_energy_gain": 25,
+    "parry_fail_penalty_f": 12,
+    "hit_count_reset_s": 2.0
+  },
+  "judgement": {
+    "perfect_ms": 40,
+    "good_ms": 80,
+    "assist_window_ms": 120,
+    "mobile_extra_ms": 20,
+    "anchor": "keydown",
+    "anchor_options": ["keydown", "active_frame"],
+    "user_offset_ms": 0
+  },
+  "drum_energy": {
+    "gauge_max": 100.0,
+    "run_gain_per_s": 6.0,
+    "run_gain_speed_ref": 8.0,
+    "hit_gain": 3.0,
+    "decay_per_s": 2.0,
+    "decay_grace_s": 3.0,
+    "finisher_damage": 200,
+    "finisher_aoe_radius": 6.0,
+    "finisher_duration_ms": 2000,
+    "finisher_invincible_ms": 1200,
+    "finisher_speed": 14.0,
+    "finisher_speed_ms": 5000,
+    "streak_required": 4
+  }
+}

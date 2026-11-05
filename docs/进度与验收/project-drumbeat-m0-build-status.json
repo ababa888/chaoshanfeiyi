@@ -1,0 +1,144 @@
+{
+  "document": {
+    "title": "《踏鼓》M0 原型开发状态与验证结果",
+    "project": "踏鼓 / Project Drumbeat",
+    "version": "v1.0",
+    "date": "2026-10-12",
+    "parent_document": "project-drumbeat-m0-prototype-tasklist.json（M0 原型可执行任务清单 v1.0）",
+    "scope": "记录 M0 原型的代码实现范围、验证结果、已修复缺陷与尚未覆盖的任务，作为 M0 试玩前的工程基线。",
+    "note": "本文档只记录「已实现 / 已验证 / 未覆盖」的事实，不新增或修改任何设计决策。"
+  },
+
+  "1_deliverable": {
+    "entry_point": "drumbeat-m0/run.py",
+    "package": "drumbeat-m0/drumbeat/",
+    "exe": {
+      "path": "drumbeat-m0/dist/踏鼓M0.exe",
+      "size_mb": 25.1,
+      "packaging": "PyInstaller 6.22.3 --onefile --windowed",
+      "self_contained": true,
+      "bundled": ["Python 运行时", "pygame 2.6.1 + SDL2", "numpy 2.2.6", "sounddevice 0.5.6 + PortAudio DLL", "drumbeat/data 全部 5 张 JSON 数据表"]
+    },
+    "runtime_outputs": [
+      "playtest_log.csv（每次判定的 音频时间 / Δt / 等级）",
+      "playtest_summary.csv（判定分布、Δt 均值与标准差、连段、用时、音频引擎状态、输入轮询率）",
+      "crash.log（仅在启动异常时生成，正常运行为空）"
+    ],
+    "build_script": "drumbeat-m0/build.ps1",
+    "verification_tool": "drumbeat-m0/tools/smoke_test.py"
+  },
+
+  "2_environment": {
+    "python": "3.10.11",
+    "pygame": "2.6.1",
+    "numpy": "2.2.6",
+    "sounddevice": "0.5.6",
+    "pyinstaller": "6.22.3",
+    "audio_device": "Realtek 扬声器（MME 默认输出）",
+    "output_latency_ms": 92.9,
+    "build_gotcha": "本机 pyinstaller 命令指向另一套 Python 3.12 环境（未安装 sounddevice），直接调用会打包出静音 exe；必须使用 `python -m PyInstaller` 以命中含 sounddevice 的 3.10 环境。已固化进 build.ps1。"
+  },
+
+  "3_implementation_map": {
+    "T-A01": { "name": "音频时钟判定底座", "status": "done", "module": "drumbeat/audio.py", "note": "sounddevice 回调累加已送出帧数作为音频时钟，回调间用 perf_counter 亚块插值；audio_time() 已扣除设备输出延迟。实测时钟速率比 1.0002。" },
+    "T-A02": { "name": "鼓点事件前瞻调度", "status": "done", "module": "drumbeat/tempo.py", "note": "LOOKAHEAD_S=0.20（200ms，落在 150–250ms 要求区间），按鼓点表提前排入音频队列，事件时间戳与判定共用同一时间轴。" },
+    "T-A03": { "name": "合拍判定核心（按键帧锚点）", "status": "done", "module": "drumbeat/judgement.py", "note": "默认 anchor=keydown，±40ms 完美 / ±80ms 合拍；命中生效帧锚点保留为可选开关供 A/B 对比；空挥仍产出判定反馈与音效、不结算伤害。" },
+    "T-A04": { "name": "分层离散换板", "status": "done", "module": "drumbeat/tempo.py", "note": "仅在小节边界切换、拍相位连续；阈值迟滞 ±0.5 单位/秒；层内 ±8% 微调参数已就位（micro_adjust_pct=8）。" },
+    "T-B01": { "name": "固定步长运动系统", "status": "done", "module": "drumbeat/motion.py", "note": "FIXED_DT=1/120 固定步长；自研 AABB 碰撞（地面/悬空横梁/单向平台）；疾行、腾跃、二段跳、抢步、矮子步齐备。" },
+    "T-B02": { "name": "统一输入抽象层", "status": "done", "module": "drumbeat/inputs.py", "note": "键鼠与手柄映射到同一动作语义，按键发生瞬间记录音频时钟时间戳（按键帧锚点的前提）。触屏未实现。" },
+    "T-B03": { "name": "手感参数实时调节面板", "status": "partial", "module": "drumbeat/app.py", "note": "F2 面板可实时调节 15 项参数并即时生效（含判定窗口、锚点、用户偏移）。缺口：配置存档/载入（存读为文件）未实现。" },
+    "T-B04": { "name": "延迟校准流程", "status": "not_started", "note": "仅提供手动用户偏移（±150ms，面板可调）；自动校准流程（跟随 8 次鼓点测算偏移）未实现。" },
+    "T-C01": { "name": "战斗状态机与帧数据", "status": "done", "module": "drumbeat/combat.py + data/frame_data.json", "note": "挥槌三段、凌空挥槌两段、劈山、对击均为 JSON 帧数据驱动；取消窗口取 recovery 后 40%。" },
+    "T-C02": { "name": "鼓劲槽与满堂彩", "status": "done", "module": "drumbeat/energy.py", "note": "疾行基础速率 + 槌花命中 + 合拍倍率 + 弹反加成；停止进攻 3 秒后 2/秒衰减；满槽且连段 ≥4 释放。" },
+    "T-C03": { "name": "对击弹反", "status": "done", "module": "drumbeat/combat.py", "note": "敌人命中前 100ms 内按攻击触发；成功硬直 1.2 秒、+25 鼓劲；过早按键进入 12 帧破绽；落在判定点为「合拍弹反」鼓劲 ×2。" },
+    "T-C04": { "name": "单一赛段与巡逻兵", "status": "done", "module": "drumbeat/level.py + data/level_segment.json", "note": "祠堂廊柱赛段：尖刺 2 处、悬空横梁 2 处、坑洞 2 处、巡逻兵 2 名（40HP/20 帧前摇）；含用时/槌花/合拍率结算。" },
+    "T-D01": { "name": "分层锣鼓乐素材（占位）", "status": "done_alternative", "module": "drumbeat/synth.py", "note": "以 numpy 程序化合成六件乐器（大鼓/大锣/大钹/小钹/小锣/滚奏/号角）替代外部采样，保证 exe 自包含且判定点音色清晰；各板式共用同一事件表、仅音色密度不同。" },
+    "T-D02": { "name": "极板 BPM 可演奏性验证素材", "status": "partial", "note": "极板 150 BPM 已在数据表内且可强制切换试听（按键 4）；140/150/160 三版本同编排对比音频未生成。" },
+    "T-D03": { "name": "节拍可视化与合拍反馈", "status": "done", "module": "drumbeat/hud.py + drumbeat/synth.py", "note": "判定圈随鼓点收缩 + 小节 4 拍指示（第 1、3 拍描金）；三档反馈：完美=锣钹双响、合拍=钹单音、未合拍=闷音；反馈在按键帧触发。" },
+    "T-E01": { "name": "判定调试面板", "status": "done", "module": "drumbeat/hud.py + drumbeat/app.py", "note": "F1 面板显示 Δt、等级、连段、BPM、拍相位、板式、锚点、输出延迟、输入轮询率；退出时导出判定日志 CSV。" },
+    "T-E02": { "name": "试玩埋点与数据采集", "status": "partial", "note": "已采集并落盘：Δt、等级、音频时间、用时、连段、满堂彩次数、音频引擎状态、轮询率。缺口：单条判定未附「所在板式/移速/招式/是否命中」字段，统计脚本未提供。" },
+    "T-E03": { "name": "移动端单手可行性验证", "status": "not_started" },
+    "T-E04": { "name": "真人试玩组织与结论报告", "status": "not_started", "note": "需真人参与，超出本次开发范围。" }
+  },
+
+  "4_verification_results": {
+    "source_smoke_test": {
+      "tool": "tools/smoke_test.py",
+      "method": "以合成音频时钟 + 会看路的机器人（遇坑/尖刺起跳、遇悬空横梁下滑、近身对击、踩判定点出招）驱动核心循环",
+      "result": "PASS",
+      "observations": {
+        "level_cleared": true,
+        "end_x": 50.05,
+        "goal_x": 50.0,
+        "enemies_killed": "2/2",
+        "hp_remaining": 90,
+        "judgement_samples": 14,
+        "perfect_rate": "86%",
+        "off_rate": "14%（全部来自机器人为了对击而做的非拍点按键，属预期）",
+        "mean_dt_ms": -3.4,
+        "std_dt_ms": 108.8,
+        "best_streak": 6,
+        "finisher_used": 1,
+        "panel_self_check": "PASS（渲染调试/手感/帮助面板、遍历全部 15 项手感参数、四档板式强制切换、死亡与收阵结算界面）"
+      }
+    },
+    "audio_clock_accuracy": { "ratio_over_2s": 1.0002, "verdict": "时钟速率与真实时间一致，满足节奏判定的时间基准要求" },
+    "packaged_exe": {
+      "method": "设置 DRUMBEAT_SMOKE_FRAMES=600 自动跑 600 帧后退出并导出日志",
+      "crash_log": false,
+      "audio_engine": "AudioEngine（真实音频，非降级）",
+      "audio_started": true,
+      "output_latency_ms": 92.9,
+      "poll_hz": 218.3,
+      "verdict": "PASS：exe 自包含可运行，内置数据表加载正常，真实音频引擎生效"
+    },
+    "oo1_precheck": {
+      "note": "M0 原型内已具备回答 OQ-1 的埋点能力；源级冒烟测试中「完美玩家」的 Δt 均值 -3.4ms，说明按键帧锚点链路无系统性偏移。",
+      "requires_real_players": true
+    }
+  },
+
+  "5_defects_found_and_fixed": [
+    {
+      "id": "BUG-001",
+      "severity": "blocking",
+      "symptom": "打开 F2 手感面板并调整「起跳缓冲 / 土狼时间 / 命中停顿上限 / 对击窗口 / 完美合拍窗口 / 合拍窗口」任一项时抛 KeyError 崩溃",
+      "root_cause": "手感参数 setter 统一写入 DATA.motion，但这些键实际位于 DATA.assist / DATA.combat / DATA.judgement",
+      "fix": "重构为按目标字典写入的通用 setter；判定窗口改动即时同步到 Judgement 实例；跳跃高度与滞空时间设下限避免零除",
+      "found_by": "tools/smoke_test.py 的面板自检（该路径仅在按键时才走，常规冒烟不会覆盖）"
+    },
+    {
+      "id": "BUG-002",
+      "severity": "major",
+      "symptom": "首次打包出的 exe 无声音，音频降级为 NullAudioEngine",
+      "root_cause": "pyinstaller 命令解析到 Python 3.12 环境，该环境未安装 sounddevice，导致 exe 内缺少 PortAudio DLL",
+      "fix": "改用 `python -m PyInstaller`（3.10 环境）并加 --collect-all sounddevice；已校验 exe 内含 libportaudio64bit.dll",
+      "found_by": "exe 运行后 playtest_summary.csv 的 output_latency_ms 为 0"
+    }
+  ],
+
+  "6_controls": {
+    "move": "A / D",
+    "jump": "空格（支持二段跳）",
+    "attack": "J（合拍判定锚点）",
+    "dash": "L 或 Shift",
+    "slide": "S（矮子步）",
+    "finisher": "F（鼓劲满 + 合拍连段 ≥4）",
+    "debug_panel": "F1",
+    "feel_panel": "F2（↑↓ 选择 / ←→ 调整 / O 重新载入数据值）",
+    "toggle_help": "F3",
+    "pause": "P",
+    "restart": "R",
+    "force_tempo_layer": "1 慢板 / 2 中板 / 3 快板 / 4 极板",
+    "quit": "ESC（退出时自动导出试玩日志）"
+  },
+
+  "7_not_covered_and_next_steps": [
+    { "item": "T-B04 延迟校准流程", "priority": "P1", "impact": "真人试玩前需手动设偏移；建议在试玩前补齐自动校准，否则 OQ-1 的 Δt 均值会混入个人设备延迟" },
+    { "item": "T-B03 配置存档/载入", "priority": "P1", "impact": "试玩者调好的手感参数无法跨轮次对比；建议补齐以支撑手感对比测试" },
+    { "item": "T-E02 埋点字段扩展 + 统计脚本", "priority": "P0", "impact": "OQ-1/OQ-3 需要按板式、移速、招式切分的 Δt 分布；当前字段不足以直接产出报告" },
+    { "item": "T-D02 140/150/160 对比音频", "priority": "P1", "impact": "OQ-2 需非遗传承人试听材料；当前只能靠强制切板式在 150 BPM 下试听" },
+    { "item": "T-E03 移动端单手验证", "priority": "P1", "impact": "OQ-4 无法回答；可按风险预案降级为 PC 上模拟单手键位" },
+    { "item": "T-E04 真人试玩", "priority": "P0", "impact": "四项开放问题均需真人数据；建议 ≥6 人（含 2 名硬核动作玩家）各 3 轮" }
+  ]
+}

@@ -1,0 +1,344 @@
+{
+  "document": {
+    "title": "《踏鼓 / Project Drumbeat》游戏策划案",
+    "subtitle": "英歌舞主题横版动作闯关游戏 · 含「如何靠 AI 一步步做完全」的开发路线图",
+    "project": "踏鼓 / Project Drumbeat",
+    "version": "v1.0",
+    "date": "2026-10-13",
+    "owner": "第8小组·游戏开发组",
+    "parent_documents": [
+      "project-drumbeat-detailed-design-document.json（详细设计文档 v1.0）",
+      "project-drumbeat-beat-judgement-tables.json（合拍判定与节拍表 v0.1）",
+      "project-drumbeat-decision-ADR-001.json（判定锚点与 BPM 决策记录）",
+      "project-drumbeat-m0-prototype-tasklist.json（M0 原型任务清单）",
+      "project-drumbeat-m0-build-status.json（M0 开发状态与验证结果）",
+      "art-source/picture/（第8小组提供的英歌像素素材包）"
+    ],
+    "note": "本策划案以「已有 M0 可玩原型 + 新到位的像素素材包」为起点，重点回答一件事：接下来用 AI 如何一步一步把游戏做完。"
+  },
+
+  "1_positioning": {
+    "genre": "2D 横版动作闯关（跑酷 + 节奏判定 + 对击弹反）",
+    "core_fantasy": "玩家扮演英歌队的槌手，踩着锣鼓鼓点一路巡游、挥槌破阵，把「英歌舞的节奏感」变成可以上手的操作快感。",
+    "one_liner": "一款「跟着鼓点打」的英歌舞横版闯关游戏：鼓点就是节拍器，合拍就是伤害倍率。",
+    "target_platform": ["PC（键鼠 / 手柄）", "浏览器 Web（课程成果展示用）"],
+    "session_length": "单关 3–5 分钟，全流程 12–15 分钟",
+    "audience": "1) 校内师生与成果展示观众；2) 对非遗题材感兴趣的轻度玩家；3) 想了解英歌舞的年轻人",
+    "design_pillars": [
+      "鼓点驱动：音频时钟是唯一时间基准，帧率波动不影响判定结果",
+      "合拍即爽点：踩准判定点出招有明确倍率与反馈，空挥不给伤害但保留音效与判定反馈",
+      "跑打无缝：跑酷态与战斗态共享同一套位移参数，切换不重置速度",
+      "文化不失真：动作、鼓点、场景均能在潮汕英歌中找到依据"
+    ]
+  },
+
+  "2_art_style_spec": {
+    "style": "像素风（16-bit 取向），角色为清晰像素块 + 硬边描边，背景为像素化中式建筑群与视差层",
+    "source_pack": "art-source/picture/ 文件夹（由豆包 Seedream 生成，按 project-drumbeat-doubao-pixel-prompt-kit.md 的提示词产出）",
+    "key_color_rule": {
+      "background_key": "#FF00FF 品红（部分 JPEG 导出后偏 #E00060 玫红）",
+      "removal_method": "边界泛洪填充：只删与画面边缘连通的底色，再用「B 远大于 G」规则清除被角色包围的残余；背景层不做粉色清除（粉色可能是画作本身）",
+      "caution": "角色红色戏服不可用全局色阈值抠图，否则会在戏服上抠出空洞"
+    },
+    "render_scale": {
+      "recommended_pixels_per_unit": 80,
+      "screen": "1280×720",
+      "visible_world": "16 × 9 单位（原 M0 为 32 × 18，需同步调整相机与关卡尺度）",
+      "character_height_px": 149,
+      "note": "角色原画内容高约 894px（跑动）/1494px（敌人站姿），统一取整数倍下采样：玩家 1/6、敌人 1/10，保证像素不糊且同批素材比例一致"
+    },
+    "palette": {
+      "dominant": ["#D11430 英歌红", "#FBEFF3 粉白（脸谱/裤）", "#D4A017 金（描边/头饰）", "#12203A 夜蓝（敌人劲装）", "#2E7D6B 青绿（腰饰/建筑彩绘）"],
+      "rule": "同一批素材锁定 24–32 色；新增素材必须套用同一色板，避免风格漂移"
+    },
+    "layout_rules": {
+      "facing": "只做朝右，程序按 facing 水平翻转",
+      "anchor": "角色以脚底中心为原点对齐地面",
+      "transparent": "统一 PNG-32 透明底",
+      "naming": "characters/player/<state>[_帧序号].png、characters/enemy/<state>[_帧序号].png、environment/<层名>.png、ui/<名称>.png"
+    },
+    "parallax_layers": {
+      "sky": "environment/天空.png（已裁剪品红带，保留天空条带）",
+      "clouds": "云朵_2 / 云朵_3（两种云层，可缓慢横移）",
+      "far": "远景层_1（山峦+村落）/ _2 / _3 / _4（多套远景，按关卡选用）",
+      "fore": "前景层_1–4（灯笼等前景道具，用于近景遮挡与纵深）",
+      "ground": "environment/ground_tile.png（石砖，需人工做无缝平铺）",
+      "level_backdrop": "environment/level_map.png（祠堂建筑全景，可作单关背景底图）"
+    }
+  },
+
+  "3_core_gameplay": {
+    "loop": "巡（跑酷推进）→ 击（合拍挥槌）→ 蓄鼓（鼓劲槽）→ 满堂彩（爆发）→ 收阵（结算）",
+    "systems": [
+      {
+        "id": "S1",
+        "name": "合拍判定",
+        "rule": "判定锚点＝按键帧（默认）；完美窗口 ±40ms、合拍窗口 ±80ms；由音频时钟驱动",
+        "hook": "数据表：drumbeat/data/feel_params.json → judgement / drumbeat/data/beat_tables.json",
+        "feedback": "完美＝锣钹双响 / 合拍＝钹单音 / 未合拍＝闷音，反馈在按键帧立即触发",
+        "damage_rule": "伤害倍率仅在攻击实际命中时结算；空挥不给鼓劲但保留音效与判定反馈"
+      },
+      {
+        "id": "S2",
+        "name": "锣鼓节奏与板式",
+        "rule": "慢板 90 / 中板 110 / 快板 140 / 极板 150（极板待非遗传承人确认）BPM；分层离散切换，仅在小节边界换板，层内 ±8% 微调；判定点固定落在每小节第 1、3 拍",
+        "hook": "drumbeat/data/tempo_layers.json + drumbeat/data/beat_tables.json"
+      },
+      {
+        "id": "S3",
+        "name": "运动与手感",
+        "rule": "固定步长 1/120s；疾行 / 腾跃 / 二段跳 / 抢步 / 矮子步；起跳缓冲、土狼时间、取消窗口可实时调",
+        "hook": "drumbeat/data/feel_params.json → motion / assist"
+      },
+      {
+        "id": "S4",
+        "name": "帧数据战斗",
+        "rule": "挥槌三段 / 凌空挥槌两段 / 劈山 / 对击；startup-active-recovery 帧数据驱动；取消窗口位于 recovery 后 40%",
+        "hook": "drumbeat/data/frame_data.json"
+      },
+      {
+        "id": "S5",
+        "name": "对击弹反",
+        "rule": "敌人命中前 100ms 内按攻击触发；成功硬直 1.2s 且 +25 鼓劲；落在判定点为「合拍弹反」鼓劲 ×2；过早按键进入 12 帧破绽",
+        "hook": "drumbeat/data/feel_params.json → combat"
+      },
+      {
+        "id": "S6",
+        "name": "鼓劲槽与满堂彩",
+        "rule": "疾行基础增速 + 槌花命中 + 合拍倍率 + 弹反加成；停止进攻 3s 后衰减；满槽且合拍连段 ≥4 释放",
+        "hook": "drumbeat/data/feel_params.json → drum_energy"
+      }
+    ],
+    "controls": {
+      "move": "A / D",
+      "jump": "空格（支持二段跳）",
+      "attack": "J（合拍判定锚点）",
+      "dash": "L 或 Shift",
+      "slide": "S（矮子步）",
+      "finisher": "F（满堂彩）",
+      "debug": "F1 判定调试面板 / F2 手感参数面板 / R 重开 / P 暂停 / ESC 退出"
+    }
+  },
+
+  "4_level_structure": {
+    "total_levels": 3,
+    "levels": [
+      {
+        "id": "L1",
+        "name": "英歌初醒",
+        "tempo": "慢板 90",
+        "teach": "移动 + 击槌 + 合拍判定",
+        "enemies": "巡逻兵 ×2",
+        "art": "祠堂廊柱（复用 level_map 中段 + 远景层_1）",
+        "status": "M0 原型已实现该赛段骨架"
+      },
+      {
+        "id": "L2",
+        "name": "双龙出海",
+        "tempo": "中板 110 → 快板 140（小节边界换板）",
+        "teach": "跳跃 / 二段跳 + 对击弹反 + 抢步",
+        "enemies": "巡逻兵 ×4 + 远程鼓师 ×1",
+        "art": "骑楼街景（前景层灯笼做纵深遮挡）"
+      },
+      {
+        "id": "L3",
+        "name": "战舞传承",
+        "tempo": "快板 140 → 极板 150（高潮段）",
+        "teach": "综合运用 + 满堂彩终结",
+        "enemies": "关底 Boss（英歌领队）+ 杂兵",
+        "art": "祠堂正殿 + 全景背景 + 锣鼓阵"
+      }
+    ],
+    "level_data_format": "每关一个 JSON：world / solids / hazards / low_walls / enemies，沿用 drumbeat/data/level_segment.json 的结构"
+  },
+
+  "5_asset_inventory": {
+    "note": "art-source/picture/ 图片包已经处理为 drumbeat-m0/assets/ 下的可用素材，清单见 drumbeat-m0/assets/manifest.json",
+    "available": {
+      "player": ["run_0..3（跑动 4 帧）", "charge（蓄力）", "jump（跳跃）", "death（阵亡）"],
+      "enemy": ["idle", "walk", "attack1", "attack2", "block", "defeat_0..2"],
+      "environment": ["天空", "云朵×2", "远景层×4", "前景层×4", "ground_tile", "level_map"],
+      "ui": ["win", "win_alt", "lose"]
+    },
+    "missing": [
+      {
+        "group": "玩家动作",
+        "items": ["idle 待机 4 帧", "挥槌三段 atk_g1/g2/g3（26/25/41 帧）", "凌空挥槌 atk_a1/a2（20/28 帧）", "劈山 dive 28 帧", "对击 parry 22 帧", "矮子步 slide 4 帧", "抢步 dash 4 帧", "受击 hurt 3 帧", "满堂彩 finisher 8 帧"],
+        "how_to_get": "用 project-drumbeat-doubao-prompt-kit.md 的提示词 B：先出一张定妆图，之后每个状态上传「定妆图 + 妆造照片」只改动作段"
+      },
+      {
+        "group": "障碍物与场景道具",
+        "items": ["尖刺陷阱", "悬空横梁（矮子步通过）", "单向平台/廊柱台基", "坑洞边缘", "收阵门楼/阵旗"],
+        "how_to_get": "提示词 D：主体替换为对应道具，风格段与像素规格段原样保留"
+      },
+      {
+        "group": "HUD 与 UI",
+        "items": ["判定圈（锣/钹造型，三种反馈色）", "4 拍鼓面图标（含强拍描金版）", "生命槽框", "鼓劲槽框（满槽发光态）", "判定图章：完美合拍/合拍/未合拍", "满堂彩就绪图标", "板式名牌：慢板/中板/快板/极板"],
+        "how_to_get": "提示词 D 的 UI 变体，或直接程序绘制保持像素风一致"
+      },
+      {
+        "group": "关卡与音频",
+        "items": ["L2/L3 背景层", "Boss 与远程鼓师", "四档板式锣鼓循环音频（90/110/140/150 BPM）", "反馈音 7 件"],
+        "how_to_get": "背景沿用提示词 D；音频可先用 drumbeat/synth.py 程序化合成占位，条件允许再录真人锣鼓"
+      }
+    ]
+  },
+
+  "6_tech_stack": {
+    "runtime": "Python 3.10+ + pygame 2.x + numpy + sounddevice",
+    "why": "零基础团队可上手；音频时钟与固定步长运动可直接控制；跨平台；课程成果展示可打包为 exe 或发布 Web",
+    "ai_tools": "Trae（AI 集成开发环境）+ DeepSeek 模型辅助编程",
+    "packaging": "PyInstaller（--onefile --windowed）产出可直接双击运行的 exe；若走 Web 可通过 Trae 的发布能力或 pygbag 打包",
+    "project_layout": {
+      "drumbeat-m0/run.py": "开发运行入口",
+      "drumbeat-m0/drumbeat/app.py": "主循环与运行时装配",
+      "drumbeat-m0/drumbeat/motion.py": "固定步长运动与 AABB 碰撞",
+      "drumbeat-m0/drumbeat/combat.py": "帧数据战斗状态机与对击弹反",
+      "drumbeat-m0/drumbeat/judgement.py": "合拍判定核心（按键帧锚点）",
+      "drumbeat-m0/drumbeat/tempo.py": "分层离散换板与鼓点前瞻调度",
+      "drumbeat-m0/drumbeat/audio.py": "音频时钟与混音引擎",
+      "drumbeat-m0/drumbeat/synth.py": "程序化锣鼓合成",
+      "drumbeat-m0/drumbeat/level.py": "赛段、障碍与敌人",
+      "drumbeat-m0/drumbeat/energy.py": "鼓劲槽与满堂彩",
+      "drumbeat-m0/drumbeat/hud.py": "渲染、HUD、节拍可视化、调试与手感面板",
+      "drumbeat-m0/drumbeat/inputs.py": "统一输入抽象层",
+      "drumbeat-m0/drumbeat/data/*.json": "五张数据表（板式/节拍/帧数据/手感/关卡）",
+      "drumbeat-m0/assets/*": "像素素材（角色/敌人/环境/UI）"
+    },
+    "data_driven_principle": "所有数值走 JSON 数据表，改数值不改代码；AI 改玩法时优先改数据表，减少回归风险"
+  },
+
+  "7_ai_roadmap": {
+    "note": "核心章节：把「靠 AI 做完这个游戏」拆成可执行步骤。每一步都写明目标、怎么做（含给 AI 的指令要点）、产出、验收标准。原则：先跑通再好看；每次只让 AI 改一个系统；改完立刻运行验证。",
+    "working_method": {
+      "loop": "描述需求 → 让 AI 改代码/数据 → 本地运行 → 记录问题 → 让 AI 修 → 再运行",
+      "rules": [
+        "每次只提一个明确目标（如「让敌人第 2 关加一个远程鼓师」），不要一次提一堆",
+        "让 AI 优先改 drumbeat/data/*.json，代码改动尽量小",
+        "涉及美术时，先给素材文件名与规格，再让 AI 写贴图加载层",
+        "每次改动后必须实跑一次并截图/记录，避免「看起来改好了其实没跑通」",
+        "版本用 Git 管理，每完成一个里程碑打一次 tag，方便回退"
+      ]
+    },
+    "milestones": [
+      {
+        "id": "M0",
+        "name": "可玩原型（已完成）",
+        "goal": "单赛段可通关，合拍判定跑在音频时钟上",
+        "status": "done",
+        "deliverable": "drumbeat-m0 原型 + 冒烟测试 PASS（通关、敌人 2/2、完美率 86%、Δt 均值 -3.4ms）"
+      },
+      {
+        "id": "M1",
+        "name": "素材接入与风格统一",
+        "goal": "把 picture 像素素材替换掉现有色块占位，画面统一为像素风",
+        "steps": [
+          {
+            "step": "M1-1 素材落位",
+            "action": "已处理：art-source/picture/ → drumbeat-m0/assets/（抠图、分帧、统一整数倍缩放），清单见 assets/manifest.json",
+            "verify": "assets/_preview_player.png、_preview_enemy.png 中角色完整、无品红残留、比例一致"
+          },
+          {
+            "step": "M1-2 写贴图加载层",
+            "action": "让 AI 在 hud.py 加「贴图加载 + 缺图回退色块」：按 assets 命名自动加载，缺图时回退到现有程序绘制",
+            "ai_prompt_hint": "要求：新增 assets 加载模块；按 state 名查表；支持水平翻转；脚底中心对齐；加载失败静默回退，不许崩",
+            "verify": "把 assets 临时改名 → 游戏仍能跑（回退生效）；恢复后角色显示为像素图"
+          },
+          {
+            "step": "M1-3 统一渲染尺度",
+            "action": "让 AI 把 PIXELS_PER_UNIT 从 40 调到 80，并同步调整相机与关卡坐标尺度，使角色约 149px 高",
+            "ai_prompt_hint": "要求：只改常量与相机换算；关卡 JSON 的坐标按 2 倍同步缩放；保证原关卡仍可通关",
+            "verify": "冒烟测试仍 PASS；角色与障碍相对比例自然，跳跃高度不遮挡视线"
+          },
+          {
+            "step": "M1-4 接入视差背景",
+            "action": "让 AI 用 environment 层替换纯色远景：天空 + 云朵缓慢横移 + 远景层 + 前景灯笼遮挡",
+            "verify": "三层视差随相机移动、无明显接缝；帧率不低于 55"
+          }
+        ]
+      },
+      {
+        "id": "M2",
+        "name": "玩法补全与三关落地",
+        "goal": "把动作、敌人、三关做齐，玩法闭环完整",
+        "steps": [
+          {
+            "step": "M2-1 玩家动作补全",
+            "action": "补齐 idle/dash/slide/hurt 与挥槌三段、凌空挥槌、劈山、对击的动画帧；帧数对齐 frame_data.json（active 帧必须落在视觉最亮帧）",
+            "ai_prompt_hint": "先让 AI 写「帧数据驱动动画播放器」：按 startup/active/recovery 切帧；再补素材逐帧接入",
+            "verify": "每个招式动画与判定提示同步，无错位；取消窗口手感与设定一致"
+          },
+          {
+            "step": "M2-2 敌人扩展",
+            "action": "让 AI 新增远程鼓师（投掷鼓槌）与 Boss（英歌领队：多段攻击 + 对击窗口）",
+            "verify": "新敌人的前摇清晰可读；对击窗口能稳定触发弹反"
+          },
+          {
+            "step": "M2-3 三关关卡",
+            "action": "按 level_segment.json 的结构，让 AI 生成 L2/L3 的 JSON 关卡；代入各自 tempo 与敌人配置",
+            "ai_prompt_hint": "给出关卡设计要点（主题、节奏、教学目标、敌人数量），让 AI 输出 JSON；人工在调试面板里实跑微调坐标",
+            "verify": "三关均可通关；每关时长 3–5 分钟；难度递增合理"
+          },
+          {
+            "step": "M2-4 HUD 与结算",
+            "action": "让 AI 用 ui 素材接入胜负结算界面；补齐判定圈、4 拍鼓面、鼓劲槽的像素美化",
+            "verify": "通关/落败界面显示正确，与游戏内 HUD 风格一致"
+          }
+        ]
+      },
+      {
+        "id": "M3",
+        "name": "音频、打磨与发布",
+        "goal": "声音与表现到位，产出可展示的成品并发布",
+        "steps": [
+          {
+            "step": "M3-1 音频",
+            "action": "优先沿用 synth.py 程序化锣鼓；有条件则替换为真人锣鼓循环（四档板式）与反馈音",
+            "verify": "四档板式切换在小节边界无缝；判定点音色清晰可辨"
+          },
+          {
+            "step": "M3-2 手感与难度打磨",
+            "action": "用 F2 手感面板做真人试玩调参；按 OQ-1 规则决定是否收紧/放宽判定窗口",
+            "verify": "试玩者完美率落在 55%–75%，未合拍率 < 15%"
+          },
+          {
+            "step": "M3-3 打包与发布",
+            "action": "让 AI 固化打包脚本（PyInstaller --onefile --windowed，显式 collect 音频依赖）；需要 Web 版则用 pygbag 或 Trae 发布能力",
+            "verify": "exe 双击可运行、有声音、无 crash.log；Web 版可被浏览器打开"
+          },
+          {
+            "step": "M3-4 展示物料",
+            "action": "录制演示视频、写项目说明、准备成果展示流程",
+            "verify": "第 7 次课可直接演示"
+          }
+        ]
+      }
+    ],
+    "open_questions": [
+      { "id": "OQ-1", "q": "±40 / ±80 判定窗口是否合适", "how": "≥6 名试玩者各 3 轮，统计 perfect/off 分布", "done": "M3-2" },
+      { "id": "OQ-2", "q": "极板 150 BPM 是否可接受", "how": "非遗传承人试听 140/150/160 同编排片段", "done": "M3-1" },
+      { "id": "OQ-3", "q": "模板换音色 vs 单关谱曲的成本取舍", "how": "统计单关音频制作人天", "done": "M3-1" },
+      { "id": "OQ-4", "q": "移动端单手操作是否过载", "how": "单手试玩含对击赛段，记录失误类型", "done": "M3-3（可选）" }
+    ]
+  },
+
+  "8_team_assignment": {
+    "note": "游戏开发组 6 人分工（李舒达为组长，同时负责英歌动作教学与开发统筹）；如个别成员专长不同可对调。",
+    "members": [
+      { "name": "李舒达", "role": "组长 / 架构与判定", "owns": ["M1-2 贴图加载层", "M1-3 渲染尺度", "合拍判定与音频时钟（S1/S2）", "进度把控与对接老师"] },
+      { "name": "李玉赫", "role": "美术与素材", "owns": ["用 AI 提示词产出剩余角色/道具/UI 素材", "素材处理与风格统一（M1-1）", "HUD 美化（M2-4）"] },
+      { "name": "陈圣源", "role": "运动与关卡", "owns": ["运动手感（S3）", "三关关卡 JSON（M2-3）", "视差背景接入（M1-4）"] },
+      { "name": "陈东阳", "role": "战斗与敌人", "owns": ["帧数据战斗与对击弹反（S4/S5）", "player 动作帧数据对齐（M2-1）", "敌人与 Boss（M2-2）"] },
+      { "name": "李佳泰", "role": "音频与节奏", "owns": ["锣鼓合成与四档板式（S2）", "M3-1 音频", "节拍可视化校验"] },
+      { "name": "沈豫辉", "role": "测试与发布", "owns": ["冒烟测试与试玩埋点（OQ-1/OQ-3）", "M3-2 手感调参", "M3-3 打包发布", "M3-4 展示物料"] }
+    ]
+  },
+
+  "9_risks": [
+    { "risk": "AI 生成动作帧不一致（角色长相漂移）", "mitigation": "先用提示词 B 出定妆图，之后每个状态都以定妆图 + 妆造照片为参考图" },
+    { "risk": "素材帧数与 frame_data.json 不匹配导致判定提示错位", "mitigation": "以数据表帧数为准手工补帧；active 帧必须落在视觉最亮帧" },
+    { "risk": "改渲染尺度后关卡手感变化，原关卡不可通", "mitigation": "改完立即跑 tools/smoke_test.py，要求仍 PASS" },
+    { "risk": "范围失控（想做太多关/太多系统）", "mitigation": "严格按月里程碑推进，M2 只做 3 关，不做成长系统与联网" },
+    { "risk": "版权与肖像风险", "mitigation": "AI 素材自生成；若用真人演出照片仅作参考不出镜；音频优先自录或免费版权" }
+  ]
+}

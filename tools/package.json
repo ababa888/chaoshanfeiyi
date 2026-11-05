@@ -1,0 +1,14 @@
+{
+  "name": "drumbeat-doc-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "《踏鼓》项目文档工具：Markdown 策划案导出 DOCX；项目汇报 PPT 生成",
+  "scripts": {
+    "docx": "node md2docx.js",
+    "ppt": "node build_ppt.js"
+  },
+  "dependencies": {
+    "docx": "^9.10.0",
+    "pptxgenjs": "^4.0.1"
+  }
+}

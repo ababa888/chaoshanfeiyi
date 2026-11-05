@@ -1,0 +1,70 @@
+{
+  "reading_guide": "beat 为 1-4 拍，sub 为拍内偏移（0.0 正拍 / 0.5 反拍）；beat_pos = (beat-1)+sub，取值 0.0-3.5。judge=true 表示该拍位是合拍判定点。每张表为 1 小节（4 拍 / 8 格）循环。时间由 BPM 换算，故同一张表适用于任意 BPM。",
+  "notation_legend": {
+    "咚": "大鼓（低音主拍，节奏骨架）",
+    "匡": "大锣（强拍强调，重音）",
+    "才": "大钹（八分填充，中音）",
+    "七": "小钹（弱拍装饰，高音）",
+    "台": "小锣（点描，细碎高音）",
+    "嘟": "鼓滚奏（过门与转场）",
+    "号角": "号角（段落标记与高潮）"
+  },
+  "tables": {
+    "slow": {
+      "drum_hits": 4,
+      "note": "每拍一击（大鼓 4 击），反拍加钹；判定点在第 1、3 拍",
+      "events": [
+        { "beat": 1, "sub": 0.0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "inst": ["才"], "judge": false },
+        { "beat": 2, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "inst": ["七"], "judge": false },
+        { "beat": 3, "sub": 0.0, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "inst": ["才"], "judge": false },
+        { "beat": 4, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "inst": ["才", "七"], "judge": false }
+      ]
+    },
+    "mid": {
+      "drum_hits": 5,
+      "note": "大鼓 5 击循环（第 3 拍后加一击八分），判定点在第 1、3 拍",
+      "events": [
+        { "beat": 1, "sub": 0.0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "inst": ["才"], "judge": false },
+        { "beat": 2, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "inst": ["七"], "judge": false },
+        { "beat": 3, "sub": 0.0, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "inst": ["才", "七"], "judge": false }
+      ]
+    },
+    "fast": {
+      "drum_hits": 7,
+      "note": "大鼓 7 击循环（第 1、2、3 拍各加一击八分）；判定点在第 1、3 拍",
+      "events": [
+        { "beat": 1, "sub": 0.0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "inst": ["咚"], "judge": false },
+        { "beat": 3, "sub": 0.0, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "inst": ["才", "七"], "judge": false }
+      ]
+    },
+    "extreme": {
+      "drum_hits": 7,
+      "note": "大鼓 7 击循环 + 花奏（嘟）；仅用于 Boss 高潮段与满堂彩演出",
+      "events": [
+        { "beat": 1, "sub": 0.0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "inst": ["咚"], "judge": false },
+        { "beat": 3, "sub": 0.0, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.0, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "inst": ["才", "七", "嘟"], "judge": false }
+      ]
+    }
+  }
+}

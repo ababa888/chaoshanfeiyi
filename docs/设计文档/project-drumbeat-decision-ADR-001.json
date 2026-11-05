@@ -1,0 +1,258 @@
+{
+  "document": {
+    "title": "《踏鼓》决策记录：判定锚点与 BPM 可行性",
+    "project": "踏鼓 / Project Drumbeat",
+    "version": "ADR-001",
+    "date": "2026-10-12",
+    "type": "架构与设计决策记录（ADR）",
+    "parent_document": "project-drumbeat-detailed-design-document.json",
+    "decision_status": "待批准",
+    "scope": ["合拍判定锚点", "锣鼓乐 BPM 可行性", "连带需修正的三项设计"],
+    "note": "本记录基于外部考据与对标作品实践，结论需经原型验证与文化审校双重确认后定稿。"
+  },
+
+  "executive_summary": {
+    "D1_判定锚点": "建议由「命中生效帧」改为「按键帧」。原默认值经定量分析不可行，需修正。",
+    "D2_BPM可行性": "快板 140 可行且有传统依据（对应顶尖英歌队水平）；极板 160 超出传统常规，建议下调至 150。",
+    "D3_连带修正": "「BPM 连续插值」在音乐制作上不可行，建议改为「分层录制 + 小节对齐切换」。",
+    "D4_连带修正": "鼓点循环长度应按板式区分（中板 5 击、快板 7 击），替代原统一的 2 小节循环。",
+    "总体判断": "两项核心问题均可确认，但 D1 需推翻原默认值，D2 需下调上限，另有 D3、D4 两项连带修正。"
+  },
+
+  "D1_judgement_anchor": {
+    "topic": "合拍判定的锚点应取按键帧还是命中生效帧",
+    "original_default": "命中生效帧",
+    "recommendation": "改为按键帧",
+    "confidence": "高",
+    "evidence": [
+      {
+        "type": "定量分析",
+        "title": "原设帧数据自相矛盾",
+        "detail": "按详细设计文档的帧数据（60fps，1 帧 = 16.67ms），各招式 startup 如下：",
+        "data": [
+          { "move": "挥槌·一段", "startup_f": 8, "startup_ms": 133 },
+          { "move": "挥槌·二段", "startup_f": 7, "startup_ms": 117 },
+          { "move": "挥槌·三段", "startup_f": 12, "startup_ms": 200 },
+          { "move": "凌空挥槌·一段", "startup_f": 6, "startup_ms": 100 },
+          { "move": "凌空挥槌·二段", "startup_f": 8, "startup_ms": 133 },
+          { "move": "劈山", "startup_f": 10, "startup_ms": 167 }
+        ],
+        "analysis": "startup 跨度为 100–200ms，极差 100ms；而合拍 good 窗口全宽为 160ms（±80ms）。极差占窗口的 62.5%。",
+        "conclusion": "若以命中帧为锚点，玩家必须为每一招记住不同的提前量（最短 100ms、最长 200ms），且提前量差几乎吃掉整个判定窗口。在快速连招中无法形成稳定的肌肉记忆，判定会显得随机。"
+      },
+      {
+        "type": "逻辑推导",
+        "title": "命中帧锚点加补偿等价于按键帧锚点加偏移",
+        "detail": "若为公平起见给每招做提前量补偿，则判定条件变为「输入时刻 + startup ≈ 鼓点」，等价于「输入时刻 ≈ 鼓点 − startup」，仍是按键帧判定附加一个随招式变化的偏移，复杂度上升而收益为零。"
+      },
+      {
+        "type": "对标实践",
+        "title": "Hi-Fi Rush 采用按键帧锚点",
+        "detail": "对标作品 Hi-Fi Rush 的规则是「玩家只需按在拍上，攻击动画会自动对齐到拍；攻击实际发生在下一拍」。玩家获得的是「按键在拍上」的即时反馈，而非等待命中。",
+        "source": "https://www.neogaf.com/threads/hi-fi-rush-ot-dance-to-the-tango-game-works.1650703/page-14",
+        "extra": "另一处讨论确认其判定为「只需命中节拍而非具体音符」：https://www.resetera.com/threads/hi-fi-rush-has-me-questioning-what-a-beat-is.802155/page-3"
+      },
+      {
+        "type": "平台差异",
+        "title": "移动端延迟放大问题",
+        "detail": "竞速音游场景下，仅 5ms 的输入延后算法就会带来约 12–18ms 的总系统延迟；移动端触屏与蓝牙耳机的延迟更显著。命中帧锚点要求玩家额外预判 100–200ms，移动端将难以承受。",
+        "source": "https://attackshark.sg/blogs/knowledges/rhythm-game-precision-debounce-polling-optimization"
+      }
+    ],
+    "final_rule": {
+      "anchor": "按键帧",
+      "judgement_flow": [
+        "1. 玩家按下攻击键，系统立即取当前音频时钟时间戳",
+        "2. 与最近的鼓点判定点比对，得出完美合拍 / 合拍 / 未合拍",
+        "3. 判定反馈（锣钹音 + 槌花 + 合拍计数 + 震动）在按键帧立即触发",
+        "4. 伤害倍率仅在攻击实际命中敌人时结算",
+        "5. 空挥（未命中）不给鼓劲，但保留音效与判定反馈"
+      ],
+      "why_immediate_feedback": "判定反馈必须落在按键帧，否则玩家按下后要等 100–200ms 才看到结果，节奏感断裂。"
+    },
+    "deliberate_deviation_from_benchmark": {
+      "hi_fi_rush_does": "把攻击动画吸附到节拍上（延迟或加速动画），保证「命中永远在拍上」",
+      "we_do_not": "不做动画吸附",
+      "reason": "本作是动作游戏而非节奏游戏，帧数据（startup / active / recovery / 取消窗口）是战斗系统的根基。吸附动画会破坏帧数据的一致性，进而破坏连招与对击的判定逻辑。",
+      "compromise": "只把「表现层」对齐节拍——槌花特效与锣钹音在按键帧触发并锁定节拍；攻击动画本身按原帧数据正常播放。玩家获得节奏满足感，同时保住动作系统的确定性。"
+    },
+    "optional_hardcore_mode": {
+      "name": "硬核判定",
+      "anchor": "命中生效帧",
+      "target_audience": "PC 手柄玩家、追求极限的速通玩家",
+      "assist": "提供每招提前量的可视化提示（招式图标上标注提前毫秒数）",
+      "default_off": true
+    },
+    "impact_on_documents": [
+      { "file": "project-drumbeat-detailed-design-document.json", "path": "3_core_gameplay.drumbeat_rhythm_system.judge_anchor.default", "from": "攻击命中生效帧", "to": "按键帧" },
+      { "file": "project-drumbeat-detailed-design-document.json", "path": "3_core_gameplay.drumbeat_rhythm_system.judge_anchor.assist_option", "from": "按键帧（辅助模式）", "to": "命中帧（硬核模式）" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "judgement_system.judge_anchor", "from": "命中生效帧", "to": "按键帧" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "judgement_system.rewards", "to": "补充「伤害倍率仅在命中时结算」与「空挥不给鼓劲」两条规则" }
+    ]
+  },
+
+  "D2_bpm_feasibility": {
+    "topic": "锣鼓乐 BPM 档位的实际可行性",
+    "original_values": { "慢板": 90, "中板": 110, "快板": 140, "极板": 160 },
+    "confidence": "高（快板）/ 中（极板）",
+    "traditional_evidence": [
+      {
+        "fact": "英歌分快板、中板、慢板三种；普宁英歌基本为快板，约每分钟 120 拍。",
+        "source": "https://culture.southcn.com/node_0b50c16e4b/b30555bd4a.shtml"
+      },
+      {
+        "fact": "一般快板英歌节奏约每分钟 130 拍；普宁富美青年英歌队经专门编排可达 140 拍以上，被称为「快板中的快板」。",
+        "source": "http://www.puning.gov.cn/jypnmtzzf/gkmlpt/content/0/876/post_876623.html?jump=true"
+      },
+      {
+        "fact": "「快板中的快板」演出节奏最快达每分钟 140 拍，比常规快板多约 20 拍；大鼓掌控演出节奏。",
+        "source": "https://view.inews.qq.com/a/20250424A01C1L00"
+      },
+      {
+        "fact": "《非物质文化遗产 潮阳英歌》地方标准（DB 4405/T 315—2025）载明：中板英歌节奏介于快板与慢板之间，司鼓一般以 5 下鼓点为一循环；快板英歌节奏较快，司鼓一般以 7 下鼓点为一循环，鼓点紧凑。",
+        "source": "https://www.stpt.edu.cn/_upload/article/files/53/40/58838af7487794853b6cb93946b9/4d483414-a74c-4fc9-a1c4-839762c52e07.pdf"
+      },
+      {
+        "fact": "潮州音乐板式为速度递进结构：头板（慢、4/4）→ 二板（中、2/4）→ 三板（更快、1/4），另有「摧」（快速花奏）。",
+        "source": "https://www.huain.com/article/other/2022/0617/995.html"
+      }
+    ],
+    "analysis": {
+      "快板_140": {
+        "verdict": "可行，有传统依据",
+        "detail": "140 拍/分对应顶尖英歌队（富美青年英歌队）的「快板中的快板」水平，属传统范围内的上限而非越界。"
+      },
+      "中板_110": {
+        "verdict": "可行",
+        "detail": "传统中板介于快板与慢板之间，快板常规约 120–130，故 110 落在中板合理区间。"
+      },
+      "慢板_90": {
+        "verdict": "可行，但属设计值",
+        "detail": "公开资料未给出慢板的确切拍速数据，90 拍/分为设计取值，非考据值。文档中应标注为「设计值」。"
+      },
+      "极板_160": {
+        "verdict": "超出传统常规，建议下调",
+        "detail": "160 拍/分较常规快板（约 130）高出约 23%，较顶尖水平（140）高出约 14%，已超出有据可查的传统快板范围。"
+      }
+    },
+    "recommendation": {
+      "change": "极板由 160 下调至 150",
+      "reason": "150 与 140 在玩法上的差异几乎可忽略（判定点间隔 800ms vs 857ms，仅差 57ms），但文化风险显著降低。以极小玩法代价换取文化准确性的提升。",
+      "differentiate_by": "极板与快板的区分不靠速度，而靠「花奏密度」——引入潮州音乐的「摧」（快速花奏）手法，以乐器密度、号角与装饰音制造高潮感，而非单纯提速。这更符合传统，也更不易让玩家感到节奏被无理加快。",
+      "alternative": "若坚持保留 160，须满足两个条件：仅用于 Boss 终局高潮段且连续不超过 8 小节；并经英歌非遗传承人确认其可接受性。"
+    },
+    "player_feasibility": {
+      "judge_interval_at_150": "800ms（判定点间隔）",
+      "judge_interval_at_160": "750ms",
+      "rhythm_game_norm": "主流音游音符间隔约 100–300ms",
+      "conclusion": "即使 160，750ms 的判定间隔仍远宽于音游常规，玩家侧不存在速度瓶颈。真正的难度来源是「边跑边打边合拍」的复合负荷，而非节拍本身的速度。"
+    },
+    "performance_feasibility": {
+      "notes_per_second_at_160": "160 拍/分 × 2（八分）= 5.3 音/秒",
+      "conclusion": "对打击乐演奏者而言毫无压力，潮州大锣鼓的花奏段远超此密度。演奏可行性不构成约束——约束来自文化真实性，而非技术能力。"
+    },
+    "impact_on_documents": [
+      { "file": "project-drumbeat-detailed-design-document.json", "path": "3_core_gameplay.drumbeat_rhythm_system.tempo_layers[3]", "from": "{ name: 极板, bpm: 160, judge_interval_ms: 750 }", "to": "{ name: 极板, bpm: 150, judge_interval_ms: 800, note: 靠花奏密度而非速度区分 }" },
+      { "file": "project-drumbeat-detailed-design-document.json", "path": "3_core_gameplay.drumbeat_rhythm_system.tempo_layers[0]", "to": "慢板 90 标注为「设计值，非考据」" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "tempo_layers.extreme", "from": "bpm 160", "to": "bpm 150" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "beat_tables.extreme", "to": "按 150 BPM 重算全部 t_ms 偏移" }
+    ]
+  },
+
+  "D3_tempo_transition_correction": {
+    "topic": "BPM 连续插值是否可行",
+    "original_design": "BPM 随移速连续插值 90 → 160，smoothing 600ms",
+    "recommendation": "改为分层离散切换 + 小节对齐",
+    "confidence": "高",
+    "evidence": [
+      {
+        "type": "音频工程",
+        "title": "78% 的连续变速会导致时间拉伸失真",
+        "detail": "连续插值意味着音频要在 90–160 BPM 之间实时变速，跨度 78%。现代音频中间件（FMOD / Wwise）的 time-stretch 在超过 ±10–15% 后会出现明显的音质劣化（颤音、瞬态模糊）。打击乐的瞬态尤其敏感，拉伸后鼓点会失去力度感。"
+      },
+      {
+        "type": "文化真实性",
+        "title": "真实锣鼓乐不存在连续变速",
+        "detail": "传统英歌与潮州锣鼓乐以固定板式演奏，速度是离散的档位，而非连续滑动的参数。连续插值既不真实，也不必要。"
+      },
+      {
+        "type": "玩法可读性",
+        "title": "连续变速让玩家无法预判判定点",
+        "detail": "若 BPM 持续微变，判定点间隔也随之持续微变，玩家难以建立稳定的节奏预期。离散档位则让玩家形成「快板 = 857ms 一拍」的稳定预期。"
+      }
+    ],
+    "revised_design": {
+      "mode": "分层离散切换",
+      "layers": "按板式录制独立音轨（慢板 / 中板 / 快板 / 极板）",
+      "switch_rule": "仅在小节边界切换，保证拍相位连续",
+      "micro_adjust": "层内允许 ±8% 的时间拉伸做精细速度映射，控制在音质可接受范围内",
+      "crossfade_ms": 120,
+      "hysteresis": "移速在阈值附近抖动时设置 ±0.5 单位/秒的迟滞区间，避免频繁换板",
+      "judge_point_impact": "判定点间隔随板式离散变化，不再连续变化"
+    },
+    "impact_on_documents": [
+      { "file": "project-drumbeat-detailed-design-document.json", "path": "3_core_gameplay.drumbeat_rhythm_system.tempo_transition", "to": "改为分层离散切换 + 小节对齐 + ±8% 微调 + 迟滞区间" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "tempo_transition", "to": "同上修正" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "difficulty_scaling.player_agency", "to": "「连续选择难度档位」改为「在离散档位间切换」" }
+    ]
+  },
+
+  "D4_beat_cycle_correction": {
+    "topic": "鼓点循环长度是否符合传统结构",
+    "original_design": "所有板式统一采用 2 小节（8 拍）循环",
+    "recommendation": "按板式区分循环长度",
+    "confidence": "高",
+    "evidence": [
+      {
+        "type": "传统依据",
+        "title": "英歌鼓点循环长度有明确规制",
+        "detail": "潮阳英歌地方标准载明：中板英歌司鼓一般以 5 下鼓点为一循环；快板英歌司鼓一般以 7 下鼓点为一循环。原设统一 8 拍循环与传统的奇数码循环结构不符。",
+        "source": "https://www.stpt.edu.cn/_upload/article/files/53/40/58838af7487794853b6cb93946b9/4d483414-a74c-4fc9-a1c4-839762c52e07.pdf"
+      }
+    ],
+    "revised_design": {
+      "cycle_by_tempo": [
+        { "tempo": "慢板", "cycle_hits": "设计值（建议 4 或 8，待定）", "note": "公开资料未给出慢板循环规制" },
+        { "tempo": "中板", "cycle_hits": 5, "source": "潮阳英歌地方标准" },
+        { "tempo": "快板", "cycle_hits": 7, "source": "潮阳英歌地方标准" },
+        { "tempo": "极板", "cycle_hits": "待定（建议沿用 7 或引入花奏变体）" }
+      ],
+      "judge_point_rule": "判定点跟随每个循环内的重音击（通常为首击与循环中段的重音），不再固定为「每小节第 1、3 拍」",
+      "consequence": "判定点间隔将随循环长度变化：中板 5 击循环、快板 7 击循环，判定点位置在循环内固定但循环长度不同",
+      "complexity_warning": "奇数码循环会打破玩家「两拍一判定」的直觉，需要重新评估可学习性。建议在原型中同时测试「传统循环」与「固定 2 拍判定」两版，取可玩性更优者。"
+    },
+    "open_question": "传统结构的准确性 vs 玩法的可学习性存在冲突。7 击循环意味着判定点位置在 7 拍的周期内重复，玩家需要感知 7 拍周期——这比 4 拍周期难得多。是否值得为文化准确性牺牲可学习性，需原型测试后决定。",
+    "impact_on_documents": [
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "musical_foundation.pattern_window", "to": "按板式区分循环长度" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "beat_tables.*", "to": "按 5 击 / 7 击循环重写节拍表（需重算）" },
+      { "file": "project-drumbeat-beat-judgement-tables.json", "path": "judgement_system.judge_points", "to": "改为「跟随循环重音」" }
+    ]
+  },
+
+  "evidence_sources": [
+    { "topic": "英歌分快板/中板/慢板，普宁英歌约 120 拍/分", "url": "https://culture.southcn.com/node_0b50c16e4b/b30555bd4a.shtml" },
+    { "topic": "一般快板约 130 拍/分，富美青年英歌队达 140 拍以上", "url": "http://www.puning.gov.cn/jypnmtzzf/gkmlpt/content/0/876/post_876623.html?jump=true" },
+    { "topic": "「快板中的快板」最快 140 拍，大鼓掌控演出节奏", "url": "https://view.inews.qq.com/a/20250424A01C1L00" },
+    { "topic": "潮阳英歌地方标准：中板 5 下鼓点一循环、快板 7 下鼓点一循环", "url": "https://www.stpt.edu.cn/_upload/article/files/53/40/58838af7487794853b6cb93946b9/4d483414-a74c-4fc9-a1c4-839762c52e07.pdf" },
+    { "topic": "潮州音乐板式：头板 4/4 慢 → 二板 2/4 中 → 三板 1/4 更快", "url": "https://www.huain.com/article/other/2022/0617/995.html" },
+    { "topic": "Hi-Fi Rush 采用按键帧锚点，攻击动画对齐节拍", "url": "https://www.neogaf.com/threads/hi-fi-rush-ot-dance-to-the-tango-game-works.1650703/page-14" },
+    { "topic": "Hi-Fi Rush 只需命中节拍而非具体音符", "url": "https://www.resetera.com/threads/hi-fi-rush-has-me-questioning-what-a-beat-is.802155/page-3" },
+    { "topic": "音游延迟：5ms 延后算法带来约 12–18ms 系统延迟", "url": "https://attackshark.sg/blogs/knowledges/rhythm-game-precision-debounce-polling-optimization" }
+  ],
+
+  "pending_confirmation": [
+    { "item": "D1 判定锚点改为按键帧", "who": "需你批准", "blocking": true },
+    { "item": "D2 极板 160 → 150", "who": "需你批准 + 英歌非遗传承人确认", "blocking": true },
+    { "item": "D3 连续插值改分层切换", "who": "需你批准 + 音频中间件选型确认（FMOD 或 Wwise）", "blocking": false },
+    { "item": "D4 循环长度改 5 击 / 7 击", "who": "需原型测试后可学习性再定", "blocking": false },
+    { "item": "慢板循环长度（4 或 8 击）", "who": "资料缺失，需向传承人求证或按设计取值", "blocking": false }
+  ],
+
+  "next_actions": [
+    { "order": 1, "action": "你确认 D1 与 D2 的结论", "output": "锁定判定锚点与 BPM 上限" },
+    { "order": 2, "action": "按确认结果回写三份文档", "output": "详细设计文档、合拍判定表、英歌融合方案的对应字段" },
+    { "order": 3, "action": "按 150 BPM 重算极板节拍表全部毫秒偏移", "output": "更新后的节拍表" },
+    { "order": 4, "action": "在 M0 原型中实测按键帧锚点的手感", "output": "真人试玩数据，验证 ±40/±80 窗口是否合适" },
+    { "order": 5, "action": "向英歌传承人求证慢板循环长度与 150 BPM 可接受性", "output": "文化审校结论" }
+  ]
+}

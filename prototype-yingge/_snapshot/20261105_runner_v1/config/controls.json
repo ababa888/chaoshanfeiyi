@@ -1,0 +1,19 @@
+{
+  "_note": "键位可改：attack=攻(J) march=行(K) defend=守(L)。手柄 button 号 0/1/2 对应三令；gamepad_axis 为扳机/摇杆接口预留。",
+  "keyboard": {
+    "attack": "j",
+    "march": "k",
+    "defend": "l"
+  },
+  "gamepad": {
+    "attack": 0,
+    "march": 1,
+    "defend": 2,
+    "restart": 3
+  },
+  "gamepad_axis": {
+    "attack": 5,
+    "march": 2,
+    "defend": 4
+  }
+}

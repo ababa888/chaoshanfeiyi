@@ -1,0 +1,20 @@
+{
+  "time_signature": "4/4",
+  "bar_beats": 4,
+  "strong_beats": [1, 3],
+  "judge_points_per_bar": 2,
+  "note": "判定点固定落在每小节第 1、3 拍；循环内大鼓击数按板式区分：慢板 4、中板 5、快板 7、极板 7",
+  "layers": [
+    { "id": "slow", "name": "慢板", "bpm": 90, "drum_hits_per_bar": 4, "min_speed": 0.0, "max_speed": 4.0, "manual_only": false },
+    { "id": "mid", "name": "中板", "bpm": 110, "drum_hits_per_bar": 5, "min_speed": 4.0, "max_speed": 8.0, "manual_only": false },
+    { "id": "fast", "name": "快板", "bpm": 140, "drum_hits_per_bar": 7, "min_speed": 8.0, "max_speed": 999.0, "manual_only": false },
+    { "id": "extreme", "name": "极板", "bpm": 150, "drum_hits_per_bar": 7, "min_speed": null, "max_speed": null, "manual_only": true, "note": "由 160 下调至 150；仅 Boss 高潮段与满堂彩演出使用" }
+  ],
+  "transition": {
+    "mode": "分层离散切换",
+    "switch_rule": "仅在小节边界切换，保证拍相位连续",
+    "micro_adjust_pct": 8,
+    "crossfade_ms": 120,
+    "hysteresis_speed": 0.5
+  }
+}

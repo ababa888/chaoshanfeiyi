@@ -1,0 +1,14 @@
+{
+  "note": "以 60fps 为参考帧率；startup 为前摇，active 为判定帧，recovery 为后摇。取消窗口位于 recovery 的后 40%。数值来自详细设计文档 3_core_gameplay.action_system.frame_data。",
+  "reference_fps": 60,
+  "attacks": [
+    { "id": "atk_g1", "name": "挥槌·一段", "startup_f": 8, "active_f": 4, "recovery_f": 14, "damage": 12, "cancel_window_f": 6, "next": "atk_g2" },
+    { "id": "atk_g2", "name": "挥槌·二段", "startup_f": 7, "active_f": 4, "recovery_f": 14, "damage": 14, "cancel_window_f": 6, "next": "atk_g3" },
+    { "id": "atk_g3", "name": "挥槌·三段", "startup_f": 12, "active_f": 5, "recovery_f": 24, "damage": 22, "cancel_window_f": 10, "next": null },
+    { "id": "atk_a1", "name": "凌空挥槌·一段", "startup_f": 6, "active_f": 4, "recovery_f": 10, "damage": 14, "cancel_window_f": 4, "next": "atk_a2" },
+    { "id": "atk_a2", "name": "凌空挥槌·二段", "startup_f": 8, "active_f": 4, "recovery_f": 16, "damage": 18, "cancel_window_f": 6, "next": "dive" },
+    { "id": "dive", "name": "劈山", "startup_f": 10, "active_f": "until_land", "recovery_f": 18, "damage": 30, "cancel_window_f": 0, "next": null, "aoe_radius_units": 2.5, "break_wall": true },
+    { "id": "parry", "name": "对击", "startup_f": 2, "active_f": 8, "recovery_f": 12, "damage": 0, "cancel_window_f": 0, "next": null }
+  ],
+  "cancel_rule": { "position": "recovery 的后 40% 帧", "purpose": "允许提前取消并衔接下一段" }
+}

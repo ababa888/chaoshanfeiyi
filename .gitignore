@@ -1,0 +1,57 @@
+# ---------- 构建与运行产物 ----------
+drumbeat-m0/build/
+drumbeat-m0/dist/
+drumbeat-m0/preview_out/
+**/__pycache__/
+*.pyc
+*.pyo
+crash.log
+
+# ---------- 试玩数据 ----------
+**/playtest_log.csv
+**/playtest_summary.csv
+
+# ---------- 依赖 ----------
+tools/node_modules/
+node_modules/
+
+# ---------- 原始素材包（约 52.7 MB）----------
+# 原始 AI 素材包（品红底，需处理），与 drumbeat-m0/assets/ 的成品并存，
+# 便于队友重新抠图/分帧；处理规则见 README「美术素材 → 抠图规则」。
+
+# ---------- Trae 内部产物 ----------
+.trae-html-share-packages/
+
+# ---------- 原稿备份 ----------
+*原稿备份*.docx
+
+# ---------- 编辑器 / 系统 ----------
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+# Office 临时文件（Word 打开 docx 时生成的锁文件等）
+~$*
+*.tmp
+
+# ---------- 环境与缓存（2026-11-03 目录扁平化后新增）----------
+.venv/
+.vscode/
+.wheel_cache/
+art-out/
+.screenshots/
+
+# ---------- 发布/打包产物（2026-11-05 推送前补齐）----------
+archive/
+build/
+dist/
+*.spec
+
+# ---------- 临时对比图 / 临时配置 ----------
+prototype-yingge/shots/_*
+**/_tmp_*
+
+# ---------- 大体积汇报材料（仅本地保留，不进新仓库）----------
+docs/汇报/
+

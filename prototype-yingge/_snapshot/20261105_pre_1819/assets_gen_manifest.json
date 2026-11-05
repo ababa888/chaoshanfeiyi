@@ -1,0 +1,7 @@
+﻿{
+    "root":  "prototype-yingge/assets_gen",
+    "generated_by":  "tools/gen_assets.py",
+    "file_count":  1006,
+    "total_bytes":  16907104,
+    "note":  "未复制二进制素材；复原时运行 tools/gen_assets.py 或从 Git 索引取回"
+}

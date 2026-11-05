@@ -1,0 +1,14 @@
+# 文本文件按内容自动判定换行，二进制文件不要动
+* text=auto
+
+*.py   text
+*.md   text
+*.json text
+*.js   text
+*.ps1  text eol=crlf
+
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.docx binary
+*.exe  binary

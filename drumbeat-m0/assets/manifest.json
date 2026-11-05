@@ -1,0 +1,692 @@
+{
+  "target_char_height": 149,
+  "recommended_pixels_per_unit": 80,
+  "tolerance": 80,
+  "palette": [
+    {
+      "hex": "#D11430",
+      "count": 55
+    },
+    {
+      "hex": "#D0132F",
+      "count": 45
+    },
+    {
+      "hex": "#D41122",
+      "count": 33
+    },
+    {
+      "hex": "#FBEFF3",
+      "count": 23
+    },
+    {
+      "hex": "#DC0D27",
+      "count": 22
+    },
+    {
+      "hex": "#CF122E",
+      "count": 21
+    },
+    {
+      "hex": "#FCF0F4",
+      "count": 20
+    },
+    {
+      "hex": "#DC0E25",
+      "count": 19
+    },
+    {
+      "hex": "#D31021",
+      "count": 19
+    },
+    {
+      "hex": "#D11021",
+      "count": 19
+    },
+    {
+      "hex": "#FBEEF5",
+      "count": 17
+    },
+    {
+      "hex": "#DA0E27",
+      "count": 16
+    },
+    {
+      "hex": "#FAEFF3",
+      "count": 15
+    },
+    {
+      "hex": "#D21126",
+      "count": 15
+    },
+    {
+      "hex": "#CF0E1F",
+      "count": 15
+    },
+    {
+      "hex": "#D00F20",
+      "count": 15
+    },
+    {
+      "hex": "#F9EEF4",
+      "count": 14
+    },
+    {
+      "hex": "#DC0C24",
+      "count": 14
+    },
+    {
+      "hex": "#DB0F28",
+      "count": 14
+    },
+    {
+      "hex": "#FBF0F6",
+      "count": 14
+    },
+    {
+      "hex": "#DD0F26",
+      "count": 14
+    },
+    {
+      "hex": "#B70C2C",
+      "count": 14
+    },
+    {
+      "hex": "#FCEFF6",
+      "count": 13
+    },
+    {
+      "hex": "#FAF0F1",
+      "count": 13
+    },
+    {
+      "hex": "#DB0D24",
+      "count": 13
+    },
+    {
+      "hex": "#FBF0F4",
+      "count": 13
+    },
+    {
+      "hex": "#DB0C26",
+      "count": 13
+    },
+    {
+      "hex": "#DD0D27",
+      "count": 12
+    },
+    {
+      "hex": "#DC0C26",
+      "count": 12
+    },
+    {
+      "hex": "#FAEFF5",
+      "count": 12
+    },
+    {
+      "hex": "#9E0524",
+      "count": 12
+    },
+    {
+      "hex": "#D21531",
+      "count": 12
+    }
+  ],
+  "palette_dark": [
+    {
+      "hex": "#000000",
+      "count": 375,
+      "role": "描边/阴影"
+    },
+    {
+      "hex": "#04010A",
+      "count": 278,
+      "role": "描边/阴影"
+    },
+    {
+      "hex": "#020003",
+      "count": 234,
+      "role": "描边/阴影"
+    },
+    {
+      "hex": "#04010C",
+      "count": 226,
+      "role": "描边/阴影"
+    },
+    {
+      "hex": "#030104",
+      "count": 223,
+      "role": "描边/阴影"
+    },
+    {
+      "hex": "#030106",
+      "count": 222,
+      "role": "描边/阴影"
+    }
+  ],
+  "assets": [
+    {
+      "source": "跑动四帧.png",
+      "output": "characters/player/run_0.png",
+      "category": "player",
+      "native_size": [
+        677,
+        891
+      ],
+      "final_size": [
+        112,
+        148
+      ],
+      "state": "run",
+      "frame": 0,
+      "scale_1/": 6
+    },
+    {
+      "source": "跑动四帧.png",
+      "output": "characters/player/run_1.png",
+      "category": "player",
+      "native_size": [
+        743,
+        895
+      ],
+      "final_size": [
+        123,
+        149
+      ],
+      "state": "run",
+      "frame": 1,
+      "scale_1/": 6
+    },
+    {
+      "source": "跑动四帧.png",
+      "output": "characters/player/run_2.png",
+      "category": "player",
+      "native_size": [
+        713,
+        891
+      ],
+      "final_size": [
+        118,
+        148
+      ],
+      "state": "run",
+      "frame": 2,
+      "scale_1/": 6
+    },
+    {
+      "source": "跑动四帧.png",
+      "output": "characters/player/run_3.png",
+      "category": "player",
+      "native_size": [
+        706,
+        841
+      ],
+      "final_size": [
+        117,
+        140
+      ],
+      "state": "run",
+      "frame": 3,
+      "scale_1/": 6
+    },
+    {
+      "source": "蓄力.jpeg",
+      "output": "characters/player/charge.png",
+      "category": "player",
+      "native_size": [
+        261,
+        393
+      ],
+      "final_size": [
+        87,
+        131
+      ],
+      "state": "charge",
+      "scale_1/": 3
+    },
+    {
+      "source": "跳跃.jpeg",
+      "output": "characters/player/jump.png",
+      "category": "player",
+      "native_size": [
+        279,
+        420
+      ],
+      "final_size": [
+        93,
+        140
+      ],
+      "state": "jump",
+      "scale_1/": 3
+    },
+    {
+      "source": "阵亡.jpeg",
+      "output": "characters/player/death.png",
+      "category": "player",
+      "native_size": [
+        273,
+        346
+      ],
+      "final_size": [
+        91,
+        115
+      ],
+      "state": "death",
+      "scale_1/": 3
+    },
+    {
+      "source": "小怪待机1.png",
+      "output": "characters/enemy/idle.png",
+      "category": "enemy",
+      "native_size": [
+        858,
+        1494
+      ],
+      "final_size": [
+        85,
+        149
+      ],
+      "state": "idle",
+      "scale_1/": 10
+    },
+    {
+      "source": "小怪行走1.png",
+      "output": "characters/enemy/walk.png",
+      "category": "enemy",
+      "native_size": [
+        867,
+        1440
+      ],
+      "final_size": [
+        86,
+        144
+      ],
+      "state": "walk",
+      "scale_1/": 10
+    },
+    {
+      "source": "小怪攻击1.png",
+      "output": "characters/enemy/attack1.png",
+      "category": "enemy",
+      "native_size": [
+        685,
+        1548
+      ],
+      "final_size": [
+        68,
+        154
+      ],
+      "state": "attack1",
+      "scale_1/": 10
+    },
+    {
+      "source": "小怪攻击2.png",
+      "output": "characters/enemy/attack2.png",
+      "category": "enemy",
+      "native_size": [
+        959,
+        1489
+      ],
+      "final_size": [
+        95,
+        148
+      ],
+      "state": "attack2",
+      "scale_1/": 10
+    },
+    {
+      "source": "小怪格挡1.png",
+      "output": "characters/enemy/block.png",
+      "category": "enemy",
+      "native_size": [
+        1095,
+        1498
+      ],
+      "final_size": [
+        109,
+        149
+      ],
+      "state": "block",
+      "scale_1/": 10
+    },
+    {
+      "source": "小怪战败倒地3帧.png",
+      "output": "characters/enemy/defeat_0.png",
+      "category": "enemy",
+      "native_size": [
+        859,
+        760
+      ],
+      "final_size": [
+        85,
+        76
+      ],
+      "state": "defeat",
+      "frame": 0,
+      "scale_1/": 10
+    },
+    {
+      "source": "小怪战败倒地3帧.png",
+      "output": "characters/enemy/defeat_1.png",
+      "category": "enemy",
+      "native_size": [
+        770,
+        610
+      ],
+      "final_size": [
+        77,
+        61
+      ],
+      "state": "defeat",
+      "frame": 1,
+      "scale_1/": 10
+    },
+    {
+      "source": "小怪战败倒地3帧.png",
+      "output": "characters/enemy/defeat_2.png",
+      "category": "enemy",
+      "native_size": [
+        854,
+        459
+      ],
+      "final_size": [
+        85,
+        45
+      ],
+      "state": "defeat",
+      "frame": 2,
+      "scale_1/": 10
+    },
+    {
+      "source": "天空.png",
+      "output": "environment/天空.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        0,
+        231,
+        1360,
+        536
+      ]
+    },
+    {
+      "source": "云朵 (2).png",
+      "output": "environment/云朵_2.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        157,
+        110,
+        1254,
+        471
+      ]
+    },
+    {
+      "source": "云朵 (3).png",
+      "output": "environment/云朵_3.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        0,
+        20,
+        1360,
+        166
+      ]
+    },
+    {
+      "source": "远景层 (1).png",
+      "output": "environment/远景层_1.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        0,
+        266,
+        1360,
+        530
+      ]
+    },
+    {
+      "source": "远景层 (2).png",
+      "output": "environment/远景层_2.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        0,
+        352,
+        1360,
+        521
+      ]
+    },
+    {
+      "source": "远景层 (3).png",
+      "output": "environment/远景层_3.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        0,
+        143,
+        1360,
+        615
+      ]
+    },
+    {
+      "source": "远景层 (4).png",
+      "output": "environment/远景层_4.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        0,
+        270,
+        1360,
+        513
+      ]
+    },
+    {
+      "source": "前景层 (1).png",
+      "output": "environment/前景层_1.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        466,
+        0,
+        894,
+        744
+      ]
+    },
+    {
+      "source": "前景层 (2).png",
+      "output": "environment/前景层_2.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        0,
+        108,
+        1360,
+        759
+      ]
+    },
+    {
+      "source": "前景层 (3).png",
+      "output": "environment/前景层_3.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        354,
+        38,
+        1012,
+        704
+      ]
+    },
+    {
+      "source": "前景层 (4).png",
+      "output": "environment/前景层_4.png",
+      "category": "environment",
+      "native_size": [
+        2720,
+        1520
+      ],
+      "final_size": [
+        1360,
+        760
+      ],
+      "kind": "parallax_layer",
+      "content_bbox": [
+        139,
+        191,
+        1286,
+        619
+      ]
+    },
+    {
+      "source": "地面.jpeg",
+      "output": "environment/ground_tile.png",
+      "category": "environment",
+      "native_size": [
+        448,
+        448
+      ],
+      "final_size": [
+        412,
+        312
+      ],
+      "kind": "tile",
+      "note": "已裁去品红外框；无缝平铺需人工二次处理"
+    },
+    {
+      "source": "完整关卡地图.png",
+      "output": "environment/level_map.png",
+      "category": "environment",
+      "native_size": [
+        3904,
+        640
+      ],
+      "final_size": [
+        1952,
+        320
+      ],
+      "kind": "level_backdrop"
+    },
+    {
+      "source": "获胜.jpeg",
+      "output": "ui/win.png",
+      "category": "ui",
+      "native_size": [
+        299,
+        448
+      ],
+      "final_size": [
+        275,
+        437
+      ],
+      "state": "win"
+    },
+    {
+      "source": "获胜1.jpeg",
+      "output": "ui/win_alt.png",
+      "category": "ui",
+      "native_size": [
+        299,
+        448
+      ],
+      "final_size": [
+        294,
+        387
+      ],
+      "state": "win_alt"
+    },
+    {
+      "source": "落败.jpeg",
+      "output": "ui/lose.png",
+      "category": "ui",
+      "native_size": [
+        299,
+        448
+      ],
+      "final_size": [
+        288,
+        395
+      ],
+      "state": "lose"
+    }
+  ]
+}

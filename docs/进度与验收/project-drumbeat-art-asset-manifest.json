@@ -1,0 +1,145 @@
+{
+  "document": {
+    "title": "《踏鼓》美术素材需求清单（M0 原型可替换占位）",
+    "project": "踏鼓 / Project Drumbeat",
+    "version": "v1.0",
+    "date": "2026-10-12",
+    "purpose": "列出当前全部程序化占位所对应的美术素材，供美术交付后直接替换；不含任何设计决策变更。",
+    "placeholder_policy_ref": "project-drumbeat-m0-prototype-tasklist.json → 2_scope.placeholder_policy",
+    "note": "M0 阶段只要求「剪影可读」——纯色填充也能辨认姿态即可；脸谱、服饰、场景细节属 M1 表现层，非试玩阻塞项。"
+  },
+
+  "0_delivery_spec": {
+    "format": "PNG-32（含 Alpha 透明通道），禁止白底/黑底抠图残留",
+    "background": "透明",
+    "resolution": "按游戏内 1 单位 = 40px 绘制；建议导出 @2x（角色画布 72×144px）以便后续高清化",
+    "facing": "只做「朝右」方向，程序按 facing 水平翻转（hud.py 已实现），无需另出朝左帧",
+    "pivot": "角色以「脚底中心」为原点对齐地面；请把脚底画布底部居中，不要留多余透明边距",
+    "naming": "player_<状态>_<两位序号>.png / enemy_patrol_<状态>_<序号>.png；场景与 UI 用 <分类>_<名称>.png",
+    "sheet_or_frames": "单帧独立文件或横向 sprite sheet 均可，请在图集里注明每帧序号",
+    "frame_alignment_constraint": "招式动画帧数必须与 drumbeat/data/frame_data.json 的 startup/active/recovery 对齐；active 帧要正好落在视觉挥槌的最亮帧上，否则判定提示与画面会错位。",
+    "frame_reference": "frame_data.json 以 60fps 为参考帧率"
+  },
+
+  "1_character_player": {
+    "id": "ART-P",
+    "name": "主角·英歌槌手",
+    "priority": "P0",
+    "code_hook": "hud.py → Renderer._draw_player（当前为白色圆角矩形 + 红头巾 + 金点朝向）",
+    "size_px": { "stand": "36×72（@2x 72×144）", "slide": "36×36（@2x 72×72）" },
+    "states": [
+      { "state": "idle", "name": "待机", "frames": 4, "loop": true, "note": "持槌站立、轻微呼吸；槌头随节拍可做预备微动" },
+      { "state": "run", "name": "疾行", "frames": 6, "loop": true, "note": "跑动步态，需体现英歌「马步推进」的下盘稳重感" },
+      { "state": "jump", "name": "腾跃起跳", "frames": 3, "loop": false },
+      { "state": "fall", "name": "下落", "frames": 2, "loop": true },
+      { "state": "double_jump", "name": "二段跳", "frames": 4, "loop": false, "note": "空中翻腾/换步" },
+      { "state": "dash", "name": "抢步", "frames": 4, "loop": false, "note": "冲刺残影感，破风" },
+      { "state": "slide", "name": "矮子步", "frames": 4, "loop": true, "note": "低姿滑行，画布切到 36×36" },
+      { "state": "atk_g1", "name": "挥槌·一段", "frames": 26, "loop": false, "frame_split": "startup 8 / active 4 / recovery 14" },
+      { "state": "atk_g2", "name": "挥槌·二段", "frames": 25, "loop": false, "frame_split": "startup 7 / active 4 / recovery 14" },
+      { "state": "atk_g3", "name": "挥槌·三段", "frames": 41, "loop": false, "frame_split": "startup 12 / active 5 / recovery 24", "note": "终结段，幅度最大" },
+      { "state": "atk_a1", "name": "凌空挥槌·一段", "frames": 20, "loop": false, "frame_split": "startup 6 / active 4 / recovery 10" },
+      { "state": "atk_a2", "name": "凌空挥槌·二段", "frames": 28, "loop": false, "frame_split": "startup 8 / active 4 / recovery 16" },
+      { "state": "dive", "name": "劈山", "frames": 28, "loop": false, "note": "空中下劈，active 持续至落地（直到落地帧结束）；落地带 AOE 冲击" },
+      { "state": "parry", "name": "对击", "frames": 22, "loop": false, "frame_split": "startup 2 / active 8 / recovery 12", "note": "双槌格挡，需有「槌对槌」的碰撞帧" },
+      { "state": "hurt", "name": "受击", "frames": 3, "loop": false },
+      { "state": "dead", "name": "落阵", "frames": 5, "loop": false, "note": "倒地/跪阵" },
+      { "state": "finisher", "name": "满堂彩", "frames": 8, "loop": false, "note": "演出动作约 2 秒；满槽释放的爆发姿态，可复用 run/atk 帧加特效" }
+    ],
+    "notes": "头盔/头巾、脸谱、英歌服饰（红黑金主色）为 M1 表现层；M0 只要剪影能辨认「站立/低姿/挥槌/格挡」四种轮廓即可。"
+  },
+
+  "2_character_enemy": {
+    "id": "ART-E",
+    "name": "巡逻兵（唯一敌人）",
+    "priority": "P0",
+    "code_hook": "hud.py → Renderer._draw_enemy（当前为灰色圆角矩形 + 血条 + 前摇警示条）",
+    "size_px": { "body": "36×72（@2x 72×144）" },
+    "states": [
+      { "state": "patrol", "name": "巡逻", "frames": 4, "loop": true },
+      { "state": "startup", "name": "前摇", "frames": 20, "loop": false, "note": "必须与 enemy startup_f=20 对齐；玩家靠这 20 帧判断对击时机，起手要清晰可读" },
+      { "state": "active", "name": "攻击", "frames": 5, "loop": false, "note": "挥砍判定帧 5 帧" },
+      { "state": "recovery", "name": "后摇", "frames": 20, "loop": false },
+      { "state": "stun", "name": "硬直", "frames": 4, "loop": true, "note": "被对击弹反后的眩晕，1.2 秒" },
+      { "state": "hurt", "name": "受击", "frames": 2, "loop": false, "note": "当前用「整只变红闪」代替，可用 1 帧加色即可" },
+      { "state": "dead", "name": "死亡", "frames": 5, "loop": false }
+    ]
+  },
+
+  "3_environment": {
+    "id": "ART-ENV",
+    "name": "赛段场景·祠堂廊柱",
+    "priority": "P0 基础 / P1 视差",
+    "code_hook": "hud.py → Renderer.draw_world / _rect / _draw_spikes / _draw_parallax",
+    "items": [
+      { "id": "env_ground", "name": "石板地面（可平铺）", "size_px": "120×120 起，横向可平铺", "priority": "P0", "note": "对应 solids.kind=ground，高 3 单位（120px）" },
+      { "id": "env_platform", "name": "廊柱台基（单向平台）", "size_px": "120×24（3×0.6 单位）", "priority": "P0" },
+      { "id": "env_low_wall", "name": "悬空横梁（矮子步通过）", "size_px": "32×72（0.8×1.8 单位）", "priority": "P0", "note": "红色横梁，需明确「上方不可通行、下方可低姿通过」的视觉暗示" },
+      { "id": "env_spike", "name": "尖刺陷阱", "size_px": "80×24（2×0.6 单位）", "priority": "P0" },
+      { "id": "env_goal", "name": "收阵门楼/旗", "size_px": "约 72×180", "priority": "P1", "note": "当前是金色旗杆 + 红旗三角，可换成祠堂门楼或阵旗" },
+      { "id": "env_pit_edge", "name": "坑洞边缘/裂隙", "size_px": "随坑宽", "priority": "P1" },
+      { "id": "env_parallax_far", "name": "远景视差·祠堂屋顶与屋脊", "size_px": "320×300 可平铺", "priority": "P1", "note": "当前为深灰矩形占位" },
+      { "id": "env_parallax_near", "name": "中景视差·廊柱列 / 灯笼串", "size_px": "320×300 可平铺", "priority": "P1" }
+    ]
+  },
+
+  "4_ui_hud": {
+    "id": "ART-UI",
+    "name": "HUD 与节拍可视化",
+    "priority": "P0 判定相关 / P1 装饰",
+    "code_hook": "hud.py → draw_hud / _bar / _draw_beat_strip / _draw_judge_circle",
+    "items": [
+      { "id": "ui_judge_ring", "name": "判定圈（锣/钹造型）", "size_px": "外径 156（半径 78）", "priority": "P0", "note": "需外圈 + 内芯可分离或整图；三档反馈色：完美=金 / 合拍=白 / 未合拍=橙（可做 3 张或 1 张+程序染色）" },
+      { "id": "ui_beat_drum_icon", "name": "小节 4 拍鼓面图标", "size_px": "直径 18（普通）/ 26（强拍）", "priority": "P0", "note": "第 1、3 拍为判定点，需「描金」版本" },
+      { "id": "ui_hp_gauge", "name": "生命槽框", "size_px": "240×16（外框约 244×20）", "priority": "P1" },
+      { "id": "ui_energy_gauge", "name": "鼓劲槽框（鼓面造型）", "size_px": "240×16", "priority": "P1", "note": "满槽需发光态" },
+      { "id": "ui_grade_stamp", "name": "判定文字图章：完美合拍 / 合拍 / 未合拍", "size_px": "约 200×60 各一张", "priority": "P1" },
+      { "id": "ui_finisher_ready", "name": "满堂彩就绪图标", "size_px": "约 64×64", "priority": "P1" },
+      { "id": "ui_layer_nameplate", "name": "板式名牌：慢板 / 中板 / 快板 / 极板", "size_px": "约 120×36 各一张", "priority": "P1" },
+      { "id": "ui_hit_count_icon", "name": "槌花计数图标", "size_px": "约 32×32", "priority": "P1" }
+    ],
+    "missing_visual_note": "任务清单 T-D03 提到的「灵蛇起伏」节拍可视化尚未实现（当前只有判定圈 + 4 拍指示），若要做需补一套灵蛇素材：idle 循环 + 随拍起伏的波身。"
+  },
+
+  "5_vfx": {
+    "id": "ART-VFX",
+    "name": "特效",
+    "priority": "P1",
+    "items": [
+      { "id": "vfx_hit_spark", "name": "命中火花", "frames": 4, "note": "槌击命中，可叠加" },
+      { "id": "vfx_parry_clash", "name": "对击弹反碰撞特效", "frames": 5, "note": "槌对槌的爆点" },
+      { "id": "vfx_energy_full", "name": "鼓劲满槽爆发", "frames": 6 },
+      { "id": "vfx_finisher_burst", "name": "满堂彩爆发", "frames": 8, "note": "配合 2 秒演出" },
+      { "id": "vfx_hurt", "name": "受击特效", "frames": 3 },
+      { "id": "vfx_dust", "name": "落地/抢步扬尘", "frames": 4 }
+    ]
+  },
+
+  "6_audio_placeholder": {
+    "id": "ART-AU",
+    "name": "音频占位替换（当前为程序化合成）",
+    "priority": "P0 分层素材 / P1 精录",
+    "code_hook": "drumbeat/synth.py → Bank（当前用 numpy 合成六件乐器）",
+    "note": "严格说不是美术，但同为占位，一并列出以免遗漏；替换后需保持「判定点音色清晰、大鼓重拍与反拍钹音可分辨」。",
+    "items": [
+      { "id": "au_layer_slow", "name": "慢板锣鼓循环（90 BPM）", "priority": "P0" },
+      { "id": "au_layer_mid", "name": "中板锣鼓循环（110 BPM）", "priority": "P0" },
+      { "id": "au_layer_fast", "name": "快板锣鼓循环（140 BPM）", "priority": "P0" },
+      { "id": "au_layer_extreme", "name": "极板锣鼓循环（150 BPM，待非遗确认）", "priority": "P1" },
+      { "id": "au_instruments", "name": "单音采样：大鼓 / 大锣 / 大钹 / 小钹 / 小锣 / 滚奏 / 号角", "priority": "P1" },
+      { "id": "au_feedback", "name": "反馈音：完美 / 合拍 / 未合拍 / 命中 / 受击 / 对击成功 / 对击失败", "priority": "P0" }
+    ]
+  },
+
+  "7_m0_minimum_set": {
+    "note": "若只做「M0 试玩必需」的最小集，以下 6 项即可让画面从纯色块升级为可读原型。",
+    "items": [
+      "ART-P 主角：idle / run / jump / fall / atk_g1 / parry / slide 七态剪影（可先各 1–2 帧）",
+      "ART-E 巡逻兵：patrol / startup / active / stun / dead 五态剪影",
+      "env_ground + env_platform + env_low_wall + env_spike（场景四件套）",
+      "ui_judge_ring（判定圈，判定反馈的核心可读性来源）",
+      "ui_beat_drum_icon（4 拍鼓面，含强拍描金版）",
+      "au_feedback 反馈音七件（完美/合拍/未合拍/命中/受击/对击成功/对击失败）"
+    ]
+  }
+}

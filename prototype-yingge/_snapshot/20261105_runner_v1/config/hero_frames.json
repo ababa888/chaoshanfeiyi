@@ -1,0 +1,350 @@
+{
+  "version": 2,
+  "frame_size": [
+    144,
+    192
+  ],
+  "baseline": 180,
+  "palette_count": 40,
+  "heroes": {
+    "wusong": {
+      "name": "武松",
+      "nick": "行者",
+      "kind": "drummer",
+      "face": "赤面",
+      "role": "鼓手 · 赤手重击",
+      "skill": "双抛槌",
+      "tagline": "赤面金睛，领鼓开阵",
+      "frame_size": [
+        144,
+        192
+      ],
+      "baseline": 180,
+      "frames": {
+        "idle": {
+          "count": 4,
+          "durations_ms": [
+            520,
+            520,
+            520,
+            520
+          ],
+          "peak": -1,
+          "loop": "loop",
+          "cancelable": true
+        },
+        "march": {
+          "count": 6,
+          "durations_ms": [
+            140,
+            140,
+            150,
+            150,
+            140,
+            140
+          ],
+          "peak": -1,
+          "loop": "loop",
+          "cancelable": true
+        },
+        "attack": {
+          "count": 4,
+          "durations_ms": [
+            90,
+            110,
+            130,
+            150
+          ],
+          "peak": 2,
+          "loop": "once",
+          "cancelable": false
+        },
+        "hurt": {
+          "count": 2,
+          "durations_ms": [
+            120,
+            220
+          ],
+          "peak": -1,
+          "loop": "once",
+          "cancelable": false
+        },
+        "down": {
+          "count": 2,
+          "durations_ms": [
+            200,
+            800
+          ],
+          "peak": -1,
+          "loop": "hold",
+          "cancelable": false
+        },
+        "skill": {
+          "count": 4,
+          "durations_ms": [
+            100,
+            130,
+            140,
+            180
+          ],
+          "peak": 2,
+          "loop": "once",
+          "cancelable": false
+        }
+      },
+      "top_frames": {
+        "idle": 3,
+        "march": 3,
+        "attack": 3,
+        "skill": 3,
+        "hurt": 2,
+        "down": 2
+      },
+      "portrait": "portraits/wusong.png",
+      "sheet": "sprites/wusong/wusong_sheet.png",
+      "preview": "sprites/wusong/wusong_preview.gif",
+      "preview_delays_ms": [
+        900,
+        900,
+        900,
+        900,
+        450,
+        450,
+        450,
+        450,
+        450,
+        450,
+        550,
+        550,
+        550,
+        550
+      ]
+    },
+    "linchong": {
+      "name": "林冲",
+      "nick": "豹子头",
+      "kind": "spear",
+      "face": "白面豹纹",
+      "role": "矛兵 · 枪棒突刺",
+      "skill": "回马枪",
+      "tagline": "枪出如龙，回马封喉",
+      "frame_size": [
+        144,
+        192
+      ],
+      "baseline": 180,
+      "frames": {
+        "idle": {
+          "count": 4,
+          "durations_ms": [
+            520,
+            520,
+            520,
+            520
+          ],
+          "peak": -1,
+          "loop": "loop",
+          "cancelable": true
+        },
+        "march": {
+          "count": 6,
+          "durations_ms": [
+            140,
+            140,
+            150,
+            150,
+            140,
+            140
+          ],
+          "peak": -1,
+          "loop": "loop",
+          "cancelable": true
+        },
+        "attack": {
+          "count": 4,
+          "durations_ms": [
+            90,
+            110,
+            130,
+            150
+          ],
+          "peak": 2,
+          "loop": "once",
+          "cancelable": false
+        },
+        "hurt": {
+          "count": 2,
+          "durations_ms": [
+            120,
+            220
+          ],
+          "peak": -1,
+          "loop": "once",
+          "cancelable": false
+        },
+        "down": {
+          "count": 2,
+          "durations_ms": [
+            200,
+            800
+          ],
+          "peak": -1,
+          "loop": "hold",
+          "cancelable": false
+        },
+        "skill": {
+          "count": 4,
+          "durations_ms": [
+            100,
+            130,
+            140,
+            180
+          ],
+          "peak": 2,
+          "loop": "once",
+          "cancelable": false
+        }
+      },
+      "top_frames": {
+        "idle": 3,
+        "march": 3,
+        "attack": 3,
+        "skill": 3,
+        "hurt": 2,
+        "down": 2
+      },
+      "portrait": "portraits/linchong.png",
+      "sheet": "sprites/linchong/linchong_sheet.png",
+      "preview": "sprites/linchong/linchong_preview.gif",
+      "preview_delays_ms": [
+        900,
+        900,
+        900,
+        900,
+        450,
+        450,
+        450,
+        450,
+        450,
+        450,
+        550,
+        550,
+        550,
+        550
+      ]
+    },
+    "likui": {
+      "name": "李逵",
+      "nick": "黑旋风",
+      "kind": "shield",
+      "face": "黑面环眼",
+      "role": "盾兵 · 双斧横扫",
+      "skill": "旋风劈",
+      "tagline": "双斧开路，黑塔承伤",
+      "frame_size": [
+        144,
+        192
+      ],
+      "baseline": 180,
+      "frames": {
+        "idle": {
+          "count": 4,
+          "durations_ms": [
+            520,
+            520,
+            520,
+            520
+          ],
+          "peak": -1,
+          "loop": "loop",
+          "cancelable": true
+        },
+        "march": {
+          "count": 6,
+          "durations_ms": [
+            140,
+            140,
+            150,
+            150,
+            140,
+            140
+          ],
+          "peak": -1,
+          "loop": "loop",
+          "cancelable": true
+        },
+        "attack": {
+          "count": 4,
+          "durations_ms": [
+            90,
+            110,
+            130,
+            150
+          ],
+          "peak": 2,
+          "loop": "once",
+          "cancelable": false
+        },
+        "hurt": {
+          "count": 2,
+          "durations_ms": [
+            120,
+            220
+          ],
+          "peak": -1,
+          "loop": "once",
+          "cancelable": false
+        },
+        "down": {
+          "count": 2,
+          "durations_ms": [
+            200,
+            800
+          ],
+          "peak": -1,
+          "loop": "hold",
+          "cancelable": false
+        },
+        "skill": {
+          "count": 4,
+          "durations_ms": [
+            100,
+            130,
+            140,
+            180
+          ],
+          "peak": 2,
+          "loop": "once",
+          "cancelable": false
+        }
+      },
+      "top_frames": {
+        "idle": 3,
+        "march": 3,
+        "attack": 3,
+        "skill": 3,
+        "hurt": 2,
+        "down": 2
+      },
+      "portrait": "portraits/likui.png",
+      "sheet": "sprites/likui/likui_sheet.png",
+      "preview": "sprites/likui/likui_preview.gif",
+      "preview_delays_ms": [
+        900,
+        900,
+        900,
+        900,
+        450,
+        450,
+        450,
+        450,
+        450,
+        450,
+        550,
+        550,
+        550,
+        550
+      ]
+    }
+  }
+}

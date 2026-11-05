@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "description": "鼓王意图权重谱。phases 按 Boss 剩余血量比例从高到低匹配；pool 为招式池与权重；open_pool 是进入该阶段后的首招候选（必须是可化解的公示招）。",
+  "grace_beats": 2,
+  "max_repeat": 2,
+  "aoe_gap_beats": 6,
+  "phase_open_min_reveal_beats": 4,
+  "reveal_beats": 4,
+  "platform": {
+    "height_px": 18.0,
+    "boss_damage_mult": 1.35,
+    "player_damage_mult": 0.85,
+    "knockdown_stagger_sec": 3.4,
+    "wall_h": 16,
+    "wall_merlons": 3
+  },
+  "tutorial": {
+    "grace_attacks": 3,
+    "damage_mult": 0.0,
+    "hint_sec": 2.8
+  },
+  "phases": [
+    {
+      "id": 1,
+      "name": "起势",
+      "hp_min": 0.66,
+      "hp_max": 1.01,
+      "reveal_beats": 6,
+      "pool": {"slam": 30, "sweep": 18, "grab": 34, "roar": 18},
+      "open_pool": ["sweep", "slam"]
+    },
+    {
+      "id": 2,
+      "name": "翻江",
+      "hp_min": 0.33,
+      "hp_max": 0.66,
+      "reveal_beats": 4,
+      "pool": {"slam": 22, "sweep": 18, "charge": 26, "grab": 24, "roar": 10},
+      "open_pool": ["charge", "slam"]
+    },
+    {
+      "id": 3,
+      "name": "绝命",
+      "hp_min": 0.0,
+      "hp_max": 0.33,
+      "reveal_beats": 4,
+      "pool": {"slam": 16, "sweep": 12, "charge": 30, "grab": 22, "roar": 20},
+      "open_pool": ["roar", "charge"]
+    }
+  ]
+}

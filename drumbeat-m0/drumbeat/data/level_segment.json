@@ -1,0 +1,37 @@
+{
+  "note": "M0 单一赛段。以详细设计文档第 1 关 1-2 赛段（廊柱区，引导腾跃与矮子步）为蓝本，末尾加入 2 名巡逻兵以验证跑打无缝与合拍命中。",
+  "id": "M0-1",
+  "name": "祠堂廊柱（原型赛段）",
+  "tempo_span": "慢板",
+  "world": {
+    "pixels_per_unit": 40,
+    "view_width": 1280,
+    "view_height": 720,
+    "start_x": 0.0,
+    "goal_x": 50.0,
+    "checkpoint_x": 19.0,
+    "fall_death_y": -12.0,
+    "target_time_s": 35.0
+  },
+  "solids": [
+    { "x": -4.0, "y": -3.0, "w": 20.0, "h": 3.0, "kind": "ground" },
+    { "x": 19.0, "y": -3.0, "w": 14.0, "h": 3.0, "kind": "ground" },
+    { "x": 36.0, "y": -3.0, "w": 18.0, "h": 3.0, "kind": "ground" },
+    { "x": 16.0, "y": 1.4, "w": 3.0, "h": 0.6, "kind": "platform" },
+    { "x": 33.0, "y": 1.8, "w": 3.0, "h": 0.6, "kind": "platform" }
+  ],
+  "hazards": [
+    { "x": 9.0, "y": 0.0, "w": 2.0, "h": 0.6, "kind": "spike" },
+    { "x": 27.0, "y": 0.0, "w": 2.0, "h": 0.6, "kind": "spike" }
+  ],
+  "low_walls": [
+    { "x": 13.0, "y": 1.0, "w": 0.8, "h": 1.8, "kind": "low_wall" },
+    { "x": 23.0, "y": 1.0, "w": 0.8, "h": 1.8, "kind": "low_wall" }
+  ],
+  "low_wall_note": "悬空横梁，站立高度 1.8 会被挡住，矮子步（高 0.9）可从下方通过",
+  "enemies": [
+    { "type": "patrol", "x": 40.0, "patrol_left": 38.0, "patrol_right": 44.0 },
+    { "type": "patrol", "x": 46.0, "patrol_left": 45.0, "patrol_right": 50.0 }
+  ],
+  "design_notes": "全程慢板，无合拍压力；尖刺与矮墙交替引导腾跃与矮子步，两处坑洞考验跳跃距离，末尾两名巡逻兵用于验证「边跑边打」与对击教学。"
+}

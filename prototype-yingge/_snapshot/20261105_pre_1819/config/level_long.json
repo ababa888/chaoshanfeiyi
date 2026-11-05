@@ -1,0 +1,78 @@
+{
+  "length_units": 148.0,
+  "u_min": -12.0,
+  "wake_units": 12.0,
+  "march_boost": 1.45,
+  "wave_clear_heal": 0.55,
+  "wave_clear_revive": 0.40,
+  "segments": [
+    {
+      "index": 1,
+      "name": "坡上林地",
+      "u0": 0.0,
+      "u1": 44.0,
+      "slope_deg": 8.0,
+      "bpm": 126.0,
+      "lantern_density": 0.55,
+      "recommend": "changshe",
+      "gate": "石阶",
+      "palette": "forest",
+      "march_boost": 1.45,
+      "waves": [
+        {"u": 16.0, "grunt": 2, "brute": 0},
+        {"u": 30.0, "grunt": 3, "brute": 0},
+        {"u": 40.0, "grunt": 2, "brute": 1}
+      ]
+    },
+    {
+      "index": 2,
+      "name": "坡中街市",
+      "u0": 44.0,
+      "u1": 98.0,
+      "slope_deg": 10.0,
+      "bpm": 132.0,
+      "lantern_density": 1.0,
+      "recommend": "fengshi",
+      "gate": "牌坊",
+      "palette": "market",
+      "march_boost": 1.45,
+      "waves": [
+        {"u": 52.0, "grunt": 3, "brute": 0},
+        {"u": 64.0, "grunt": 3, "brute": 0},
+        {"u": 76.0, "grunt": 4, "brute": 0},
+        {"u": 86.0, "grunt": 3, "brute": 1}
+      ]
+    },
+    {
+      "index": 3,
+      "name": "坡底广场",
+      "u0": 98.0,
+      "u1": 148.0,
+      "slope_deg": 12.0,
+      "bpm": 138.0,
+      "lantern_density": 0.35,
+      "recommend": "menghu",
+      "gate": "石阶",
+      "palette": "plaza",
+      "march_boost": 1.45,
+      "waves": [
+        {"u": 106.0, "grunt": 3, "brute": 0},
+        {"u": 118.0, "grunt": 4, "brute": 0},
+        {"u": 128.0, "grunt": 3, "brute": 1},
+        {"u": 136.0, "grunt": 3, "brute": 0}
+      ]
+    }
+  ],
+  "boss": {
+    "u": 142.5,
+    "platform_u0": 139.5,
+    "platform_u1": 147.5,
+    "platform_v_half": 3.2,
+    "thickness_px": 30,
+    "steps": 3
+  },
+  "props": {
+    "mile_every": 10.0,
+    "lane_spacing": 5.0
+  }
+}

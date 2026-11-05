@@ -1,0 +1,22 @@
+# 验收清单（第 13 轮）
+
+- [x] `pseudo3d.py` 使用针孔 `scale(v)=(FOCAL+DEPTH0)/(FOCAL+depth(v))`，参数 `FOCAL=4 / DEPTH0=6 / DEPTH_GAIN=1.35`，`scale(0)==1.0`
+- [x] 纵深 7 档区间首尾相接、无空档，档中心映射回自身，档缩放严格递减
+- [x] `gen_assets.py` 预烘 hero / enemy / boss / prop / shadow 全量 7 档，b3 好汉 90×120
+- [x] 预烘 PNG 尺寸与 manifest 一致；逐像素 alpha 仅 0/255（无中间 alpha）
+- [x] 运行时世界精灵只按档挑图（1× blit），不做任意缩放/插值
+- [x] 阴影随档改变尺寸与偏移，同一右上光源
+- [x] 地面逐格四边形绘制，纯色 + 1px 边，不贴拉伸地面纹理
+- [x] 地面常数 u 边线交于消失点（误差 ≤1px），收敛为梯形
+- [x] `config/level_long.json` 加载为 148 单位、3 段（0–44 / 44–98 / 98–148），坡度 8/10/12°，BPM 126/132/138
+- [x] 全部波次由表生成，远波 dormant、12 单位唤醒；清波回血 55% / 扶起 40%
+- [x] Boss 触发、石台几何（u=142.5、139.5–147.5、v±3.2、30px、3 级）全部读表
+- [x] 相机前视 3.4–4.6、边界 `[0, map_len-6]`、无 cam_dip 下压，逐帧位移连续
+- [x] 屏幕外单位/敌人/Boss/道具不参与绘制（`p3d.on_screen` + 可视 u 裁剪）
+- [x] `Shift+P` / `DRUMBEAT_PERSPECTIVE_DEBUG=1` 显示消失点、地平线、档号
+- [x] 段落入口卡显示段名/坡度/推荐阵/BPM/路线
+- [x] `selftest.py` 输出 `SELFTEST: PASS`（含新增透视/长图断言）
+- [x] `drumbeat-m0/tools/smoke_test.py` 输出 `SMOKE: PASS`
+- [x] `tools/longrun_bench.py` 完整一关 `status=cleared`，记录总时长/均值/中位/p95/峰值
+- [x] 五张验收图 38–42 均存在且为 1920×1080
+- [x] `README.md` 第十三轮参数表、长图结构、性能数字、截图与已知边界已更新

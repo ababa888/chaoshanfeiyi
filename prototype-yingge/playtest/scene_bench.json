@@ -1,0 +1,56 @@
+{
+  "size": [
+    1920,
+    1080
+  ],
+  "rows": [
+    {
+      "scene": "title",
+      "frames": 240,
+      "avg_ms": 6.07,
+      "median_ms": 5.97,
+      "p95_ms": 7.3,
+      "peak_ms": 9.0
+    },
+    {
+      "scene": "roster",
+      "frames": 240,
+      "avg_ms": 6.71,
+      "median_ms": 6.52,
+      "p95_ms": 7.89,
+      "peak_ms": 9.6
+    },
+    {
+      "scene": "guide_step2",
+      "frames": 240,
+      "avg_ms": 7.31,
+      "median_ms": 7.02,
+      "p95_ms": 8.83,
+      "peak_ms": 13.9
+    },
+    {
+      "scene": "guide_step5",
+      "frames": 240,
+      "avg_ms": 7.25,
+      "median_ms": 7.06,
+      "p95_ms": 8.65,
+      "peak_ms": 13.32
+    },
+    {
+      "scene": "guide_calib",
+      "frames": 240,
+      "avg_ms": 7.61,
+      "median_ms": 7.29,
+      "p95_ms": 9.54,
+      "peak_ms": 15.6
+    },
+    {
+      "scene": "pause",
+      "frames": 240,
+      "avg_ms": 1.87,
+      "median_ms": 1.85,
+      "p95_ms": 2.15,
+      "peak_ms": 3.18
+    }
+  ]
+}

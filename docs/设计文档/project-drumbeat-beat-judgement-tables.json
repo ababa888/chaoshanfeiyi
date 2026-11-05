@@ -1,0 +1,360 @@
+{
+  "document": {
+    "title": "《踏鼓》合拍判定与锣鼓乐节拍表",
+    "project": "踏鼓 / Project Drumbeat",
+    "parent_document": "project-drumbeat-yingge-integration.json",
+    "version": "v0.1",
+    "date": "2026-10-11",
+    "scope": ["合拍判定规则", "锣鼓乐节拍表", "判定与反馈", "技术实现要点"],
+    "note": "所有 BPM、窗口、偏移量均为设计目标值，需在音频原型中实测校准。"
+  },
+
+  "musical_foundation": {
+    "time_signature": "4/4",
+    "bar_beats": 4,
+    "strong_beats": [1, 3],
+    "weak_beats": [2, 4],
+    "smallest_grid": "八分音符（每拍 2 格，每小节 8 格）",
+    "pattern_window": "每小节（4 拍 / 8 格）为一循环；循环内的大鼓击数按板式区分：慢板 4 击、中板 5 击、快板 7 击、极板 7 击 + 花奏",
+    "cycle_note": "「中板以 5 下鼓点为一循环、快板以 7 下鼓点为一循环」出自《非物质文化遗产 潮阳英歌》地方标准（DB 4405/T 315—2025）。本表将其解读为「每小节 4 拍内的大鼓击数」，以保持判定点落在固定拍位、便于玩家建立节奏预期。此解读待英歌非遗传承人确认。",
+    "notation_legend": {
+      "咚": "大鼓（低音主拍，节奏骨架）",
+      "匡": "大锣（强拍强调，重音）",
+      "才": "大钹（八分填充，中音）",
+      "七": "小钹（弱拍装饰，高音）",
+      "台": "小锣（点描，细碎高音）",
+      "嘟": "鼓滚奏（过门与转场）",
+      "号角": "号角（段落标记与高潮）"
+    },
+    "instrument_roles": [
+      { "instrument": "大鼓", "role": "主拍与移速映射的载体，BPM 由它决定", "gameplay": "判定点落在大鼓重拍上" },
+      { "instrument": "大锣", "role": "强拍强调", "gameplay": "合拍成功时的主反馈音" },
+      { "instrument": "大钹 / 小钹", "role": "八分音符填充，制造密度感", "gameplay": "提示玩家节奏密度，但不作为判定点" },
+      { "instrument": "号角", "role": "段落标记", "gameplay": "标记赛段转换、Boss 登场、满堂彩触发" }
+    ],
+    "musical_structure_mapping": {
+      "description": "每关 BGM 按慢板→中板→快板递进，与关卡节奏的「热身→教学→压力→高光」四阶段对齐。",
+      "mapping": [
+        { "level_phase": "热身", "tempo": "慢板", "purpose": "让玩家在低节奏压力下熟悉动作" },
+        { "level_phase": "教学", "tempo": "慢板 → 中板", "purpose": "引入新机制时节奏不过快" },
+        { "level_phase": "压力", "tempo": "中板 → 快板", "purpose": "节奏与战斗压力同步上升" },
+        { "level_phase": "高光", "tempo": "快板 → 极板", "purpose": "推向高潮，配合满堂彩" }
+      ]
+    }
+  },
+
+  "tempo_layers": [
+    {
+      "id": "slow",
+      "name": "慢板",
+      "bpm": 90,
+      "beat_ms": 666.7,
+      "bar_ms": 2666.7,
+      "eighth_ms": 333.3,
+      "judge_interval_ms": 1333.3,
+      "drum_hits_per_bar": 4,
+      "trigger": "移速 < 4 单位/秒",
+      "mood": "起势沉稳，适合教学与观察",
+      "judge_points_per_bar": 2,
+      "note": "90 为设计值，非考据值；4 击循环为设计取值"
+    },
+    {
+      "id": "mid",
+      "name": "中板",
+      "bpm": 110,
+      "beat_ms": 545.5,
+      "bar_ms": 2181.8,
+      "eighth_ms": 272.7,
+      "judge_interval_ms": 1090.9,
+      "drum_hits_per_bar": 5,
+      "trigger": "4 ≤ 移速 < 8 单位/秒",
+      "mood": "常态推进，密度与呼吸平衡",
+      "judge_points_per_bar": 2,
+      "note": "5 击循环源自潮阳英歌地方标准（DB 4405/T 315—2025）"
+    },
+    {
+      "id": "fast",
+      "name": "快板",
+      "bpm": 140,
+      "beat_ms": 428.6,
+      "bar_ms": 1714.3,
+      "eighth_ms": 214.3,
+      "judge_interval_ms": 857.1,
+      "drum_hits_per_bar": 7,
+      "trigger": "移速 ≥ 8 单位/秒（含抢步）",
+      "mood": "激烈推进，高手区",
+      "judge_points_per_bar": 2,
+      "note": "对应顶尖英歌队「快板中的快板」水平；7 击循环源自潮阳英歌地方标准"
+    },
+    {
+      "id": "extreme",
+      "name": "极板",
+      "bpm": 150,
+      "beat_ms": 400.0,
+      "bar_ms": 1600.0,
+      "eighth_ms": 200.0,
+      "judge_interval_ms": 800.0,
+      "drum_hits_per_bar": 7,
+      "trigger": "Boss 战高潮段 / 满堂彩演出期间",
+      "mood": "极限密度，仅在高光时刻短暂出现；靠花奏（摧）密度而非速度制造高潮",
+      "judge_points_per_bar": 2,
+      "note": "由 160 下调至 150，与快板靠花奏密度区分"
+    }
+  ],
+
+  "tempo_transition": {
+    "mode": "分层离散切换",
+    "description": "按板式录制独立音轨，仅在小节边界切换，保证拍相位连续；层内允许 ±8% 时间拉伸做精细速度映射。",
+    "why_not_interpolation": "原「连续插值 90→160」跨度为 78%，时间拉伸超过 ±15% 后打击乐瞬态会明显劣化；且真实锣鼓乐以固定板式演奏，不存在连续变速。",
+    "layers": ["慢板 90", "中板 110", "快板 140", "极板 150"],
+    "switch_rule": "仅在小节边界切换，保证拍相位连续",
+    "micro_adjust": "层内允许 ±8% 时间拉伸",
+    "crossfade_ms": 120,
+    "hysteresis": "移速阈值附近设 ±0.5 单位/秒迟滞区间，避免频繁换板",
+    "phase_continuity": "换板时保持拍相位连续（不重置小节），避免判定点错位",
+    "design_intent": "玩家通过「抢步」主动控制移速，在离散档位间切换——跑得越快，判定点越密、难度越高，但鼓劲收益也越高。这是本作最核心的风险回报选择。"
+  },
+
+  "beat_tables": {
+    "reading_guide": "t_ms 为该事件相对循环起点的毫秒偏移；judge 为 true 表示该拍位是合拍判定点。每张表为 1 小节（4 拍 / 8 格）循环。大鼓击数按板式区分：慢板 4、中板 5、快板 7、极板 7。",
+    "slow": {
+      "bpm": 90,
+      "drum_hits": 4,
+      "note": "每拍一击（大鼓 4 击），反拍加钹；判定点在第 1、3 拍",
+      "events": [
+        { "beat": 1, "sub": 0.0, "t_ms": 0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "t_ms": 333, "inst": ["才"], "judge": false },
+        { "beat": 2, "sub": 0.0, "t_ms": 667, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "t_ms": 1000, "inst": ["七"], "judge": false },
+        { "beat": 3, "sub": 0.0, "t_ms": 1333, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "t_ms": 1667, "inst": ["才"], "judge": false },
+        { "beat": 4, "sub": 0.0, "t_ms": 2000, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "t_ms": 2333, "inst": ["才", "七"], "judge": false }
+      ]
+    },
+    "mid": {
+      "bpm": 110,
+      "drum_hits": 5,
+      "note": "大鼓 5 击循环（第 3 拍后加一击八分），判定点在第 1、3 拍",
+      "events": [
+        { "beat": 1, "sub": 0.0, "t_ms": 0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "t_ms": 273, "inst": ["才"], "judge": false },
+        { "beat": 2, "sub": 0.0, "t_ms": 545, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "t_ms": 818, "inst": ["七"], "judge": false },
+        { "beat": 3, "sub": 0.0, "t_ms": 1091, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "t_ms": 1364, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.0, "t_ms": 1636, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "t_ms": 1909, "inst": ["才", "七"], "judge": false }
+      ]
+    },
+    "fast": {
+      "bpm": 140,
+      "drum_hits": 7,
+      "note": "大鼓 7 击循环（第 1、2、3 拍各加一击八分）；判定点间隔 857ms",
+      "events": [
+        { "beat": 1, "sub": 0.0, "t_ms": 0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "t_ms": 214, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.0, "t_ms": 429, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "t_ms": 643, "inst": ["咚"], "judge": false },
+        { "beat": 3, "sub": 0.0, "t_ms": 857, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "t_ms": 1071, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.0, "t_ms": 1286, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "t_ms": 1500, "inst": ["才", "七"], "judge": false }
+      ]
+    },
+    "extreme": {
+      "bpm": 150,
+      "drum_hits": 7,
+      "note": "大鼓 7 击循环 + 花奏（摧）；判定点间隔 800ms；仅用于 Boss 高潮段与满堂彩演出",
+      "events": [
+        { "beat": 1, "sub": 0.0, "t_ms": 0, "inst": ["咚", "匡", "号角"], "judge": true },
+        { "beat": 1, "sub": 0.5, "t_ms": 200, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.0, "t_ms": 400, "inst": ["咚"], "judge": false },
+        { "beat": 2, "sub": 0.5, "t_ms": 600, "inst": ["咚"], "judge": false },
+        { "beat": 3, "sub": 0.0, "t_ms": 800, "inst": ["咚", "匡"], "judge": true },
+        { "beat": 3, "sub": 0.5, "t_ms": 1000, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.0, "t_ms": 1200, "inst": ["咚"], "judge": false },
+        { "beat": 4, "sub": 0.5, "t_ms": 1400, "inst": ["才", "七", "嘟"], "judge": false }
+      ]
+    }
+  },
+
+  "judgement_system": {
+    "judge_points": {
+      "rule": "判定点固定落在每小节的强拍（第 1 拍与第 3 拍），与 BPM 无关",
+      "reason": "判定点位置稳定，玩家只需适应速度变化，不需要重新学习节拍位置，降低学习成本"
+    },
+    "judge_anchor": {
+      "default": "按键帧",
+      "description": "以玩家按下攻击键的那一帧为锚点，判定与所用招式无关，玩家可形成稳定的肌肉记忆",
+      "hardcore_option": "命中生效帧（硬核模式）",
+      "hardcore_description": "以攻击动作实际造成判定的那一帧为锚点，需按招式预判提前量，仅供追求极限的 PC 玩家选用",
+      "why_default_changed": "各招式 startup 跨度为 100–200ms（极差 100ms），而 good 窗口全宽仅 160ms，极差占窗口 62.5%。若以命中帧为锚点，玩家必须为每招记住不同提前量，判定会显得随机。"
+    },
+    "judgement_flow": [
+      "玩家按下攻击键，系统立即取当前音频时钟时间戳并判定",
+      "判定反馈（锣钹音 / 槌花 / 合拍计数 / 震动）在按键帧立即触发",
+      "伤害倍率仅在攻击实际命中敌人时结算",
+      "空挥（未命中）不给鼓劲，但保留音效与判定反馈",
+      "不做动画吸附——本作是动作游戏，帧数据是战斗系统根基"
+    ],
+    "windows": [
+      { "grade": "完美合拍", "id": "perfect", "tolerance_ms": 40, "description": "偏差在 ±40ms 内" },
+      { "grade": "合拍", "id": "good", "tolerance_ms": 80, "description": "偏差在 ±40ms 至 ±80ms 之间" },
+      { "grade": "未合拍", "id": "off", "tolerance_ms": null, "description": "偏差超过 ±80ms" }
+    ],
+    "latency_calibration": {
+      "user_offset_range_ms": { "min": -150, "max": 150 },
+      "default_offset_ms": 0,
+      "calibration_flow": "首次启动时播放 8 次鼓点，要求玩家跟随敲击，系统自动测算音频与输入延迟并写入偏移",
+      "note": "移动端蓝牙耳机延迟显著，必须提供校准入口"
+    },
+    "rewards": [
+      {
+        "grade": "perfect",
+        "damage_multiplier": 1.5,
+        "drum_energy_multiplier": 1.8,
+        "streak_delta": 1,
+        "vfx": "金色槌花 + 鼓面图标高亮",
+        "sfx": "锣 + 钹双重反馈音",
+        "haptic": "短促强震"
+      },
+      {
+        "grade": "good",
+        "damage_multiplier": 1.3,
+        "drum_energy_multiplier": 1.5,
+        "streak_delta": 1,
+        "vfx": "白色槌花",
+        "sfx": "钹单音",
+        "haptic": "轻震"
+      },
+      {
+        "grade": "off",
+        "damage_multiplier": 1.0,
+        "drum_energy_multiplier": 1.0,
+        "streak_delta": "归零",
+        "vfx": "无特效",
+        "sfx": "闷音（提示未合拍）",
+        "haptic": "无"
+      }
+    ],
+    "streak_rules": {
+      "reset_condition": "出现一次未合拍即归零",
+      "no_extra_penalty": "未合拍不扣鼓劲、不打断连招、不影响取消窗口",
+      "tiers": [
+        { "streak": 4, "reward": "满堂彩就绪（终结技可释放）" },
+        { "streak": 8, "reward": "满堂彩伤害 +10%" },
+        { "streak": 12, "reward": "满堂彩伤害 +20%，触发全场锣鼓齐鸣演出" },
+        { "streak": 16, "reward": "满堂彩伤害 +30%（上限），结算额外评分加成" }
+      ],
+      "cap": "满堂彩伤害加成上限 +30%"
+    },
+    "interaction_with_combat": [
+      "合拍只影响伤害与鼓劲，不改变连招段数、取消窗口与命中判定",
+      "未合拍不会打断连招，避免节奏失误与动作失误互相惩罚",
+      "对击弹反独立判定，但若弹反恰好落在判定点上，额外给予「合拍弹反」加成（鼓劲 ×2）",
+      "空中攻击同样参与合拍判定，判定点不变"
+    ]
+  },
+
+  "difficulty_scaling": {
+    "primary_source": "判定点间隔随 BPM 缩短",
+    "table": [
+      { "tempo": "慢板", "bpm": 90, "judge_interval_ms": 1333, "max_beats_per_second": 0.75, "player_control": "低速行走即可维持" },
+      { "tempo": "中板", "bpm": 110, "judge_interval_ms": 1091, "max_beats_per_second": 0.92, "player_control": "常态移速" },
+      { "tempo": "快板", "bpm": 140, "judge_interval_ms": 857, "max_beats_per_second": 1.17, "player_control": "需持续疾行" },
+      { "tempo": "极板", "bpm": 150, "judge_interval_ms": 800, "max_beats_per_second": 1.25, "player_control": "仅 Boss 段，不可自选" }
+    ],
+    "player_agency": "移速决定 BPM，BPM 决定判定密度，判定密度决定难度与鼓劲收益。玩家通过「抢步」主动选择难度档位——这是可控的自我挑战，而非被动的难度施加。",
+    "gain_curve": "快板下的鼓劲获取速度约为慢板的 1.8 倍，构成「跑得更快、风险更高、回报更大」的闭环。"
+  },
+
+  "boss_rhythm_gimmicks": {
+    "description": "Boss 以「破坏鼓点」为攻击手段，是对合拍系统的反向利用。",
+    "gimmicks": [
+      {
+        "name": "抢拍",
+        "mechanic": "Boss 在反拍（八分反位）插入重音，诱导玩家提前按键",
+        "counter": "辨识重音音色——Boss 抢拍使用闷鼓音色，与正拍的清亮大鼓可区分",
+        "level": 6
+      },
+      {
+        "name": "乱拍",
+        "mechanic": "Boss 临时改变 BPM（±15%）并保持 4 小节，考验玩家跟随",
+        "counter": "跟随锣声重新对齐节拍；此期间判定窗口放宽至 ±100ms 作为补偿",
+        "level": 11
+      },
+      {
+        "name": "静音",
+        "mechanic": "Boss 剥夺 BGM 与鼓点音，玩家需依赖视觉节拍",
+        "counter": "灵蛇蛇身起伏与鼓面图标提供视觉节拍；此期间判定窗口放宽至 ±120ms",
+        "level": 12
+      },
+      {
+        "name": "镜像对击",
+        "mechanic": "Boss 与玩家同步出招，要求玩家在其命中帧对击",
+        "counter": "以 Boss 挥槌的预备动作作为节奏提示，而非依赖鼓点",
+        "level": 11
+      }
+    ]
+  },
+
+  "accessibility": {
+    "modes": [
+      {
+        "id": "assist",
+        "name": "节奏辅助",
+        "changes": ["显示判定圈与节拍高亮", "判定窗口放宽至 ±120ms", "锁定按键帧锚点（不可切换硬核模式）"]
+      },
+      {
+        "id": "visual_only",
+        "name": "纯视觉节拍",
+        "changes": ["鼓面图标与灵蛇提供完整视觉节拍", "适合听障玩家与静音环境"]
+      },
+      {
+        "id": "free",
+        "name": "纯体验模式",
+        "changes": ["关闭合拍增益与判定", "鼓点仅作音效与氛围，不影响任何数值"]
+      }
+    ],
+    "principle": "合拍是增益而非门槛。关闭合拍系统后，玩家仍可用基础跑酷与战斗完整通关全部主线。"
+  },
+
+  "scoring_integration": {
+    "revised_dimensions": [
+      { "name": "用时", "weight": 0.40 },
+      { "name": "槌花（连击）", "weight": 0.20 },
+      { "name": "合拍率", "weight": 0.25, "description": "合拍次数 / 判定点总次数，perfect 计 1.0、good 计 0.7" },
+      { "name": "收集", "weight": 0.15 }
+    ],
+    "note": "相较原方案的「用时 0.5 / 连击 0.3 / 收集 0.2」，新增合拍率维度并下调用时权重，使节奏掌控成为评价的核心之一。"
+  },
+
+  "technical_implementation": {
+    "clock_source": "使用音频时钟（Unity AudioSettings.dspTime 或 Web Audio currentTime）驱动判定，不使用帧时间",
+    "why": "帧率波动会直接破坏判定公平性；音频时钟与 BGM 同源，保证判定与听觉一致",
+    "scheduling": "前瞻调度：提前 150–250ms 将鼓点事件排入音频队列，避免卡顿造成漏拍",
+    "frame_independence": "所有容差以毫秒计，不随帧率变化；高帧率不带来判定优势",
+    "data_driven": "每首曲目一份鼓点表（JSON / ScriptableObject），含 BPM 曲线、判定点时间轴、乐器轨",
+    "latency_pipeline": "输入延迟补偿 = 设备音频输出延迟 + 输入采样延迟 + 用户校准偏移",
+    "pause_handling": "暂停/恢复时保持拍相位，避免恢复瞬间判定点错位",
+    "testing": "提供判定调试面板：实时显示 Δt、判定等级、连段数、当前 BPM 与拍相位"
+  },
+
+  "worked_example": {
+    "scenario": "玩家在第 6 关「鼓王擂台」以快板（140 BPM）作战，持续 30 秒",
+    "judge_points_available": 35,
+    "calculation": "30 秒 ÷ 0.857 秒/判定点 ≈ 35 个判定点",
+    "perfect_run": { "hits": 35, "drum_energy_gain_multiplier": 1.8, "result": "约 63 秒即可蓄满鼓劲（100）" },
+    "good_run": { "hits": 35, "drum_energy_gain_multiplier": 1.5, "result": "约 75 秒蓄满鼓劲" },
+    "off_run": { "hits": 0, "drum_energy_gain_multiplier": 1.0, "result": "需依赖跑酷与槌花积累，约 110 秒蓄满" },
+    "conclusion": "完美合拍玩家释放满堂彩的频率约为普通玩家的 1.7 倍，构成明确但不失衡的技巧回报。"
+  },
+
+  "open_questions": [
+    "判定锚点默认值（命中帧 vs 按键帧）已在 ADR-001 定为按键帧，±40 / ±80 窗口需在原型阶段用真人试玩验证并可能微调；命中帧仅作硬核模式可选",
+    "极板 150 BPM 是否为上限，需与锣鼓乐团队及非遗传承人确认实际演奏可行性与正拍感",
+    "抢拍与乱拍机制是否会让普通玩家产生「系统不公平」的感知，需 A/B 测试",
+    "是否需要为每关单独谱曲，还是复用一套鼓点模板换音色——前者成本高但主题性强"
+  ]
+}
